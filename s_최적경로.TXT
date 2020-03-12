@@ -1,0 +1,88 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <cstring>
+
+#define MAX 999999999
+#define abs(X) (X) > 0 ? (X) : -(X)
+
+using namespace std;
+int T,N;
+vector<pair<int,int>> customer;
+vector<pair<int,int>> permu;
+pair<int,int> s,e;
+int minn;
+int selected[10];
+
+int cal()
+{
+    //시작부터 permu 거쳐서 끝까지 더한 값 출력
+    int sum = 0;
+    int xs=0,ys=0;
+    xs = abs(s.first - permu[0].first);
+    ys = abs(s.second - permu[0].second);
+    sum = xs+ys;
+    for(int i=0;i<N-1;i++)
+    {
+        if(sum > minn)
+            return sum;
+        xs = abs(permu[i].first - permu[i+1].first);
+        ys = abs(permu[i].second - permu[i+1].second);
+        sum += xs+ys;
+    }
+    xs = abs(permu[N-1].first - e.first);
+    ys = abs(permu[N-1].second - e.second);
+    sum += xs+ys;
+    
+    return sum;
+}
+        
+void solve(int cnt)
+{
+    //손님 위치 순서를 뭘로 시작해서 뭘로 끝낼지를 결정 
+    if(cnt == N)
+    {
+        int tmp = cal();
+        if(minn > tmp)
+            minn = tmp;
+        return;
+    }
+    
+    for(int i=0;i<N;i++)
+    {
+        if(selected[i] == 1) continue;
+        selected[i] = 1;
+        permu.push_back({customer[i].first,customer[i].second});
+        solve(cnt+1);
+        selected[i] = 0;
+        permu.pop_back();
+    }
+}
+
+void init()
+{
+    scanf("%d", &T);
+    for(int tc=1;tc<=T;tc++)
+    {
+        minn = MAX;
+        customer.clear();
+        memset(selected,0,sizeof(selected));
+        int x,y;
+        scanf("%d", &N);
+        scanf("%d %d", &s.first, &s.second);
+        scanf("%d %d", &e.first, &e.second);
+        for(int i=0;i<N;i++)
+        {
+            scanf("%d %d", &x, &y);
+            customer.push_back({x,y});
+        }
+        solve(0);
+        printf("#%d %d\n", tc,minn);
+    }
+}
+       
+int main() {
+    
+    init();
+    return 0;
+}
