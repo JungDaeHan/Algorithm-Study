@@ -1,0 +1,142 @@
+#include cstdio
+#include iostream
+#include queue
+#include cstring
+
+using namespace std;
+
+int T,N,X,M;
+queuepairint,int q;
+int cage[6];
+int Maxham;
+int maxr;
+int endFlag;
+vectorpairpairint,int,int v;
+vectorint vcheck[7];
+
+int check()
+{
+    for(int i=0;iM;i++)
+    {
+        int f = v[i].first.first;
+        int r = v[i].first.second;
+        int cnt = v[i].second;
+        int sum = 0;
+        for(int j = f ; j = r; j++)
+        {
+            sum += cage[j];
+            if(sum  cnt)
+                return 0;
+        }
+        if(sum != cnt )
+            return 0;
+    }
+    maxr 이후의 아이들은 최고값으로 놔둬도 성립
+    for(int i=maxr ; iN;i++)
+        cage[i] = X;
+    return 1;
+}
+
+int tmpcheck(int idx)
+{
+    idx 를 r 로 두는 애들의 집합
+    int vlen = vcheck[idx].size();
+    for(int i=0;ivlen;i++)
+    {
+        int f = v[vcheck[idx][i]].first.first;
+        int r = v[vcheck[idx][i]].first.second;
+        int cnt = v[vcheck[idx][i]].second;
+        int sum = 0;
+        for(int j = f ; j = r ; j++)
+        {
+            sum+=cage[j];
+            if(sum  cnt)
+                return 0;
+        }
+        if(sum!= cnt)
+            return 0;
+    }
+    return 1;
+}
+
+void solve(int idx,int cnt,int limit)
+{
+    X마리를 최대로 하여 N-1 인덱스까지 limit 를 나눠서 분배.
+    
+    if(idx = N  endFlag == 1)
+        return;
+    
+    if(cnt == limit)
+    {
+        
+        if(check())
+            endFlag = 1;
+        return;
+    }
+    
+    for(int i=0;i=X;i++)
+    {
+        cage[idx] = i;
+        if(tmpcheck(idx))
+            solve(idx+1,cnt+i,limit);
+        if(endFlag == 1) return;
+    }
+}
+
+void printResult(int tc)
+{
+    printf(#%d ,tc);
+    if(endFlag == 0)
+        printf(-1n);
+    else
+    {
+        for(int i=0;iN;i++)
+            printf(%d , cage[i]);
+        printf(n);
+    }
+}
+
+void init()
+{
+    int l,r,s;
+    scanf(%d,&T);
+    for(int tc=1; tc=T; tc++)
+    {
+        maxr = 0;
+        endFlag = 0;
+        Maxham = 0;
+        v.clear();
+        for(int i=0;i7;i++) vcheck[i].clear();
+        
+        scanf(%d %d %d, &N, &X, &M);
+        for(int i=0;iM;i++)
+        {
+            scanf(%d %d %d, &l, &r, &s);
+            v.push_back({{l-1,r-1},s});
+            if(maxr  r-1)
+                maxr = r-1;
+            if(Maxham  s)
+                Maxham = s; 가장 많은 햄스터부터 사전순으로 봐야하니 맥스값 저장
+        }
+        
+        for(int i=0;iv.size();i++)
+        {
+            vcheck[v[i].first.second].push_back(i);
+        }
+        
+        for(int i=Maxham;i=0;i--)
+        {
+            solve(0,0,i);
+            if(endFlag == 1) 뒤에서부터 사전순으로 보는데 결과가 나왔으면 그것이 가장 최적의 값이므로 탈출
+                break;
+        }
+        
+        printResult(tc);
+    }
+}
+       
+int main() {
+    
+    init();
+    return 0;
+}
