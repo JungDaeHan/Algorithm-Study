@@ -1,0 +1,128 @@
+// s_하나로 : 우선순위 큐와 크루스칼 알고리즘 이용
+
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <cstring>
+#include <string.h>
+#include <queue>
+
+#define abs(X) (X) > 0 ? (X) : -(X)
+
+using namespace std;
+
+int T,N;
+priority_queue<pair<long long,pair<int,int>>> pq;
+vector<pair<int,int>> v;
+int parent[1001];
+double E;
+long long result;
+
+void makePQ()
+{
+    long long dx,dy,dist;
+    int size = v.size();
+    for(int i=0;i<size-1;i++)
+    {
+        for(int j=i+1;j<size;j++)
+        {
+            dx = abs(v[i].first - v[j].first);
+            dy = abs(v[i].second - v[j].second);
+            dist = -(dx*dx + dy*dy);
+            pq.push({dist,{i,j}});
+        }
+    }
+    
+    /*
+    while(pq.empty() != 1)
+    {
+        int x = pq.top().second.first;
+        int y = pq.top().second.second;
+        long long d = pq.top().first;
+        
+        printf("x : %d, y : %d, d : %lld \n", x,y,d);
+        pq.pop();
+    }
+    */
+}
+
+int findParent(int n)
+{
+    if(parent[n] == n)
+        return n;
+    return parent[n] = findParent(parent[n]);
+}
+
+void newParent(int oldp,int newp)
+{
+    for(int i=0;i<N;i++)
+    {
+        if(parent[i] == oldp)
+            parent[i] = newp;
+    }
+}
+
+void solve()
+{
+    // parent 거슬러 올라갔더니 같으면 다음걸로 넘어감.
+    while(pq.empty() != 1)
+    {
+        int x = pq.top().second.first;
+        int y = pq.top().second.second;
+        int xp = findParent(x);
+        int yp = findParent(y);
+       
+        
+        if(xp == yp)
+        {
+            pq.pop();
+            continue;
+        }
+        
+        long long dist = -pq.top().first;
+        pq.pop();
+        result += E*dist;
+        
+        if(xp > yp)
+            newParent(xp,yp);
+        else
+            newParent(yp,xp);
+            
+    }
+    
+    
+}       
+            
+void init()
+{
+    scanf("%d", &T);
+    for(int tc=1;tc<=T;tc++)
+    {
+        result = 0;
+        int x[1001],y[1001];
+        v.clear();
+        
+        scanf("%d", &N);
+        for(int i=0;i<N;i++)
+            scanf("%d",&x[i]);    
+        for(int i=0;i<N;i++)
+            scanf("%d", &y[i]);
+        for(int i=0;i<N;i++)
+        {
+            v.push_back({x[i],y[i]});
+            parent[i] = i;
+        }
+
+        scanf("%lf", &E);
+        makePQ();
+        solve();
+        
+        printf("#%d %lld\n", tc,result);
+    }
+}
+       
+int main() {
+    
+    init();
+    return 0;
+}
