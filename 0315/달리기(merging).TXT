@@ -1,0 +1,75 @@
+#include <cstdio>
+#include <iostream>
+
+using namespace std;
+
+pair<int,int> arr[500001];
+pair<int,int> tmparr[500001]; // 처음에 이 선언을 merging 함수 안에서 했더니 시간초과가 발생. 
+                              // 너무 커서 선언자체에도 시간이 많이 들어가는듯 .. 
+int result[500001];
+
+void merging(int s,int mid,int e)
+{
+    int p=s;
+    int q=mid+1;
+    int idx = s;
+    
+    while(p <= mid && q <= e)
+    {
+        if(arr[p].first < arr[q].first)
+        {
+            tmparr[idx++] = arr[q];
+            result[arr[q++].second] -= mid-p+1;
+        }
+        else
+            tmparr[idx++] = arr[p++];
+    }
+    
+    for(;p<=mid;p++)
+        tmparr[idx++] = arr[p];
+    for(;q<=e;q++)
+    {
+        tmparr[idx++] = arr[q];
+        result[arr[q].second] -= mid-p+1;
+    }
+    
+    for(int i=s;i<=e;i++)
+        arr[i] = tmparr[i];
+}
+
+
+void mergeSort(int s,int e)
+{
+    if(s >= e) return;
+    int mid = (s+e)/2;
+    
+    mergeSort(s,mid);
+    mergeSort(mid+1,e);
+    merging(s,mid,e);
+}
+
+void init()
+{
+    int N;
+    scanf("%d", &N);
+    
+    for(int i=0;i<N;i++)
+    {
+        scanf("%d", &arr[i].first);
+        arr[i].second = i;
+        result[i] = i+1;
+    }
+    
+    mergeSort(0,N-1);
+    
+    for(int i=0;i<N;i++)
+        printf("%d\n", result[i]);
+    
+    return;
+}
+
+int main()
+{
+    init();
+    return 0;
+}

@@ -1,0 +1,84 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+
+#define MAX 999999999
+
+using namespace std;
+
+int T,N;
+int mapp[101][101];
+int d[101][101];
+int dx[4] = {0,0,1,-1};
+int dy[4] = {1,-1,0,0};
+int minn;
+
+void DFS(int x,int y,int dist)
+{
+    //base condition
+    if(dist > minn || (x==N-1 && y==N-1) ) return;
+    
+    //recursive
+    for(int i=0;i<4;i++)
+    {
+        int nx = x + dx[i];
+        int ny = y + dy[i];
+        
+        if(nx <0 || nx >= N || ny < 0 || ny >= N) continue;
+
+        if(d[nx][ny] > dist + mapp[nx][ny])
+        {
+            d[nx][ny] = dist + mapp[nx][ny];
+            DFS(nx,ny,d[nx][ny]);
+        }
+    }
+}
+
+void greedy(int x,int y,int dist)
+{
+    // 미리 가장 가깝게 갈 만한 애로 minn 값을 구해놈 
+    // 15반 샤코 김재민 코드를 참조함
+    if(x==N-1 && y==N-1)
+    {
+        minn = dist;
+        return;
+    }
+    
+    if(x==N-1)
+        greedy(x,y+1,dist+mapp[x][y+1]);
+    else if(y==N-1)
+        greedy(x+1,y,dist+mapp[x+1][y]);
+    else
+    {
+        if(mapp[x+1][y] < mapp[x][y+1]) 
+            greedy(x+1,y,dist + mapp[x+1][y]);
+        else
+            greedy(x,y+1,dist + mapp[x][y+1]);
+    }
+    
+}
+   
+void init()
+{
+    scanf("%d", &T);
+    for(int tc=1;tc<=T;tc++)
+    {
+        minn = MAX;
+        scanf("%d", &N);
+        for(int i=0;i<N;i++)
+            for(int j=0;j<N;j++)
+            {
+                scanf("%1d", &mapp[i][j]);
+                d[i][j] = MAX;
+            }
+        
+        greedy(0,0,0);
+        DFS(0,0,0);
+        printf("#%d %d\n", tc, d[N-1][N-1]);
+    }
+}
+       
+int main() {
+    init();
+    return 0;
+}

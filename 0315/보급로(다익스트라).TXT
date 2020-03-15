@@ -1,0 +1,65 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <cstring>
+
+using namespace std;
+
+int T,N;
+int mapp[101][101];
+int d[101][101];
+int dx[4] = {0,0,1,-1};
+int dy[4] = {1,-1,0,0};
+
+int solve()
+{
+    //dist, {x, y}
+    priority_queue<pair<int,pair<int,int>>> pq;
+    pq.push({0,{0,0}});
+    
+    while(pq.empty() != 1)
+    {
+        int x,y,dist;
+        dist = -pq.top().first;
+        x = pq.top().second.first;
+        y = pq.top().second.second;
+        pq.pop();
+        
+        if(d[x][y] == -1 ) d[x][y] = dist;
+        
+        for(int i=0;i<4;i++)
+        {
+            int nx = x + dx[i];
+            int ny = y + dy[i];
+            
+            if(nx < 0 || ny < 0 || nx >= N || ny >= N) continue;
+            int ndist = -dist-mapp[nx][ny];
+            if(d[nx][ny] == -1) pq.push({ndist,{nx,ny}});
+        }
+        
+    }
+    return d[N-1][N-1];
+}
+   
+void init()
+{
+    scanf("%d", &T);
+    for(int tc=1;tc<=T;tc++)
+    {
+        memset(d,-1,sizeof(d));
+        scanf("%d", &N);
+        for(int i=0;i<N;i++)
+            for(int j=0;j<N;j++)
+                scanf("%1d", &mapp[i][j]);
+        
+        int dist = solve();
+        printf("#%d %d\n", tc, dist);
+    }
+}
+       
+int main() {
+    
+    init();
+    return 0;
+}
