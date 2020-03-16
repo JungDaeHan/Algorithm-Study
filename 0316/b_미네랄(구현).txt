@@ -1,0 +1,236 @@
+#include <cstdio>
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <algorithm>
+
+#define MAX 999999
+
+using namespace std;
+
+int dir[4][2] = { {-1,0}, { 0,1 }, { 0,-1 }, { 1,0 } };
+char map[100][100];
+int R, C;
+int arrow, p;
+
+//초기화 필요한 변수들
+int visited[100][100];
+queue<pair<int, int>> Q; //클러스터를 찾기위해 BFS를 할 때 사용
+vector<pair<int, int>> check; // 없어진 X의 상하좌우의 X 위치를 저장
+vector<int> flowPoint[100]; // 인덱스는 열, 안의 값들은 클러스터에 해당하는 행 인덱스값들.
+priority_queue<int, vector<int>, less<int>> pq[100]; // 아래부터 내리기 위해 행 인덱스 내림차순으로 저장
+
+void checkM(int x,int y)
+{
+	//x,y 의 상우 를 보며 X 가 있는지 확인, 있으면 BFS 로 돌리면서 바닥까지
+	//이어지는 지를 확인, 바닥이 나오지 않았으면(flag) BFS로 해당되는 X들을 다 내려야된다
+	// 바로 아래가 다른 미네랄이거나, 땅바닥일때까지 그 X들을 내린다.
+
+	int movex, movey;
+	int tx, ty;
+	int toMove = 1; // 땅바닥을 만나 0으로 전환되면 클러스터를 옮길 필요 없음.
+
+   // if(p==41)
+	//printf("x : %d y: %d\n", x, y);
+    
+	for (int i = 0; i < 4; i++)
+	{
+		// 삭제한 좌표의 주변이 X 이면 일단 저장
+		movex = x + dir[i][0];
+		movey = y + dir[i][1];
+
+		if (movex < 0 || movex >= R-1 || movey < 0 || movey >= C ||
+			map[movex][movey] == '.') continue; // movex >= R-1 : 이미 땅바닥에 있는 애인데 움직일 필요 x
+	
+        //if(p==41)
+        //    printf("주변 X %d %d \n", movex,movey);
+		check.push_back(make_pair(movex, movey));
+	}
+
+	for (int i = 0; i < check.size(); i++)
+	{
+		// 여기서 저장한 주변 X 들에 대해 BFS 를 돌리며 땅바닥과 이어졌는지 확인
+		// toMove 가 0 이면 신경쓸 필요 없고, toMove 가 1일 경우 visited된 부분에
+		// 대해 내려감.
+		if (visited[check[i].first][check[i].second] == 1)
+			continue;
+        
+        for(int k=0;k<C;k++)
+        {
+		  flowPoint[k].erase(flowPoint[k].begin(), flowPoint[k].end());
+		  while (pq[k].empty() != 1)
+			pq[k].pop(); // !! pq 초기화가 잘 되고있지 않는 것 같음
+        }   
+	    while (Q.empty() != 1) Q.pop();
+        
+		Q.push(make_pair(check[i].first, check[i].second));
+        visited[check[i].first][check[i].second] = 1;
+        flowPoint[check[i].second].push_back(check[i].first); 
+		pq[check[i].second].push(check[i].first); 
+		toMove = 1;
+
+		while (Q.empty() != 1)
+		{
+			movex = Q.front().first;
+			movey = Q.front().second;
+			Q.pop();
+            //if(p==41)
+			//printf("movex : %d movey : %d \n", movex, movey);
+			for (int d = 0; d < 4; d++)
+			{
+				tx = movex + dir[d][0];
+				ty = movey + dir[d][1];
+				if (tx < 0 || tx >= R || ty < 0 || ty >= C || visited[tx][ty] == 1 ||
+					map[tx][ty] == '.') continue;
+                
+                //if(p==41)
+               //printf("tx : %d ty : %d \n", tx,ty);
+				visited[tx][ty] = 1;
+				flowPoint[ty].push_back(tx); // ty에 해당하는 열에서 내려가야할 후보 tx 모음
+				pq[ty].push(tx); //움직여야할 클러스터에서 각 열마다 가장 바닥쪽인 행번호 저장 
+				Q.push(make_pair(tx, ty));
+
+				if (tx == R-1) // 바닥으로 이어졌으면 움직일 필요 x, !!!!!!!!! 이 부분에서 문제 발생 싸발 !!!!!! -> 그래도 BFS 다 돌고 visit 체크를 해야 다른 방향의 X 에서도 판단 가능. 그래서 break는 하면 안됨
+                    toMove = 0;
+        
+			}
+		}
+        //if(p==41)
+		//  printf("move : %d \n", toMove);
+
+		if (toMove == 1) // 클러스터가 공중에 떠있음, 내려가야 함.
+		{
+			int minMove = MAX;
+			int Movecnt;
+
+			for(int k=0;k<C;k++) // k는 열
+			{
+				for(int l=0 ; l<flowPoint[k].size() ; l++) // k의 열에 있는 움직여야할 X의 행 인덱스 모음
+				{
+					Movecnt = 0;
+                    //if(p==41)
+                    //    printf("k : %d 행 : %d %d \n",k,flowPoint[k][l],visited[flowPoint[k][l]][k]);
+					for (int a = flowPoint[k][l]+1; a < R; a++)
+					{
+						
+                        vector<int>::iterator findindex = find(flowPoint[k].begin(),flowPoint[k].end(),a);
+                        //if(p==41)
+						//  printf("%d %d \n", a, k); 
+						if (map[a][k] == 'x' && findindex == flowPoint[k].end() )
+							break;
+						Movecnt++;
+					}
+					if (minMove > Movecnt)
+						minMove = Movecnt;
+				}
+			}
+			
+
+			//Movecnt 만큼 pq 에 있는 열들을 내려줌 
+			//printf("minMove : %d \n", minMove);
+
+			for (int k = 0; k < C; k++)
+			{
+				while(pq[k].empty() != 1)
+				{
+					// k 열을 Movecnt 만큼 내려줌.
+                    //if(p==41)
+                    //    printf("내려갈 %d %d 기존위치 %d %d \n", pq[k].top()+minMove,k,pq[k].top(),k);
+					map[pq[k].top() + minMove][k] = map[pq[k].top()][k];
+					map[pq[k].top()][k] = '.';
+					pq[k].pop();
+				}
+			}
+			break; //한번 클러스터가 내려갔으면 더이상 하지마 동시에는 안된다매
+		}
+
+	}
+    
+    /*
+        if(p==41)
+        {
+            printf("%d \n", p);
+		printf("\n");
+		for (int i = 0; i < R; i++)
+		{
+			for (int j = 0; j < C; j++)
+				printf("%c", map[i][j]);
+			printf("\n");
+		}
+		printf("\n");
+        }*/
+		
+
+	//초기화 부분
+	check.erase(check.begin(), check.end());
+    
+	return;
+}
+
+int main()
+{
+	int branch = 0;
+
+	cin >> R >> C;
+
+	for (int i = 0; i < R; i++)
+		for (int j = 0; j < C; j++)
+			scanf(" %c", &map[i][j]);
+
+	cin >> arrow;
+	
+	for (int i = 0; i < arrow; i++)
+	{
+		cin >> p;
+		for (int i = 0; i < R; i++)
+			for (int j = 0; j < C; j++)
+				visited[i][j] = 0;
+
+		if (branch == 0)
+		{
+			for (int j = 0; j < C; j++)
+			{
+				if (map[R - p][j] == 'x')
+				{
+					map[R - p][j] = '.';
+					checkM(R - p, j);
+					break;
+				}
+			}
+		}
+		else if (branch == 1)
+		{
+			for (int j = C - 1; j >= 0; j--)
+			{
+				if (map[R - p][j] == 'x')
+				{
+					map[R - p][j] = '.';
+					checkM(R - p, j);
+					break;
+				}
+			}
+		}
+		branch = (branch + 1) % 2;
+
+		/*
+		printf("\n");
+		for (int i = 0; i < R; i++)
+		{
+			for (int j = 0; j < C; j++)
+				printf("%c", map[i][j]);
+			printf("\n");
+		}
+		printf("\n");
+		*/
+		
+	}
+
+	for (int i = 0; i < R; i++)
+	{
+		for (int j = 0; j < C; j++)
+			printf("%c", map[i][j]);
+		printf("\n");
+	}
+
+	return 0;
+}

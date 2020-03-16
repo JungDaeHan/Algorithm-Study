@@ -1,0 +1,227 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <cstring>
+
+#define MAX 999999999
+
+
+using namespace std;
+
+int minn;
+int dx[4] = {0,0,1,-1};
+int dy[4] = {1,-1,0,0};
+int dz[2] = {1,-1};
+queue< pair < pair<int,int>, pair<int,int> > > Q; //BFS 로 최단거리 찾아감. x,y,z,dist
+int maze[4][5][5][5]; // 회전된 모든 미로판들 모음
+int visited[5][5][5];
+int selected[5] = {0,}; // 어떻게 회전된 판을 쓸건지 -> 조합
+vector<int> Z; // 판을 어떤 순서로 쌓을건지 -> 순열
+int Zselected[5];
+int tmpMaze[5][5][5]; // 각 순열마다 생성되는 미로를 여기다 꽂아넣음
+
+void Escape()
+{
+    // selected 인덱스 값은 L 에 해당, Z에 적힌 인덱스 값은 K 에 해당.
+    if(tmpMaze[0][0][0] == 0 || tmpMaze[4][4][4] == 0)
+        return;
+    
+    memset(visited,0,sizeof(visited));
+    while(Q.empty() != 1)
+        Q.pop();
+    
+    visited[0][0][0] = 1;
+    Q.push({{0,0},{0,0}});
+    
+    int x,y,z,dist;
+    
+    while(Q.empty() != 1 )
+    {
+        x = Q.front().first.first;
+        y = Q.front().first.second;
+        z = Q.front().second.first;
+        dist = Q.front().second.second;
+        Q.pop();
+        
+        if(x==4 && y==4 && z==4)
+        {
+            
+            if(minn > dist)
+            {
+                minn = dist;
+            }
+            return;
+        }
+        
+        for(int i=0;i<4;i++)
+        {
+            int nx = x + dx[i];
+            int ny = y + dy[i];
+            
+            if(nx < 0 || nx >= 5 || ny < 0 || ny >= 5 || visited[z][nx][ny] == 1 || tmpMaze[z][nx][ny] == 0) continue;
+            //printf("nx : %d \n", nx);
+            visited[z][nx][ny] = 1;
+            Q.push({{nx,ny},{z,dist+1}});
+        }
+        for(int i=0;i<2;i++)
+        {
+            int nz = z + dz[i];
+            
+            if(nz < 0 || nz >= 5 || visited[nz][x][y] == 1 || tmpMaze[nz][x][y] == 0) continue;
+            
+            visited[nz][x][y] = 1;
+            Q.push({{x,y},{nz,dist+1}});
+        }
+    }
+    
+}
+    
+void makeMaze()
+{
+    int z=0;
+    for(int k=0;k<5;k++)
+    {   
+        for(int i=0;i<5;i++)
+        {
+            for(int j=0;j<5;j++)
+            {
+                //printf("%d %d\n", selected[Z[z]], Z[z]);
+                tmpMaze[k][i][j] = maze[ selected[Z[z]] ][ Z[z] ][i][j];
+            }
+        }
+        z++;
+    }
+    /*
+    if(selected[0] == 4 && selected[1] == 3)
+    {
+        for(int l=0;l<4;l++)
+    {
+        for(int k=0;k<5;k++)
+        {
+            for(int i=0;i<5;i++)
+            {
+                for(int j=0;j<5;j++)
+                    printf("%d ", maze[l][k][i][j]);
+                printf("\n");
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+    }
+    */
+    Escape();
+}                 
+
+void permu(int cnt)
+{
+    if(cnt == 5)
+    {
+        makeMaze();
+        return;
+    }
+    
+    for(int i=0;i<5;i++)
+    {
+        if(Zselected[i] == 1)continue;
+        Zselected[i] = 1;
+        Z.push_back(i);
+        permu(cnt+1);
+        Z.pop_back();
+        Zselected[i] = 0;
+    }
+}
+
+void solve(int idx)
+{
+    if(idx == 5)
+    {
+        permu(0);
+        return;
+    }
+    
+    selected[idx] = 0; solve(idx+1);
+    selected[idx] = 1; solve(idx+1);
+    selected[idx] = 2; solve(idx+1);
+    selected[idx] = 3; solve(idx+1);
+}
+
+void init()
+{
+    int x,y;
+    minn = MAX;
+    for(int k=0;k<5;k++)
+    {
+        for(int i=0;i<5;i++)
+        {
+            for(int j=0;j<5;j++)
+                scanf("%d", &maze[0][k][i][j]);
+        }
+    }
+    
+    for(int k=0;k<5;k++)
+    {
+        x=0;
+        for(int j=4;j>=0;j--)
+        {   y=0;
+            for(int i=0;i<5;i++)
+                maze[1][k][i][j] = maze[0][k][x][y++];
+            x++;
+        }
+    }
+    
+    for(int k=0;k<5;k++)
+    {
+        x=0;
+        for(int i=4;i>=0;i--)
+        {
+            y=0;
+            for(int j=4;j>=0;j--)
+                maze[2][k][i][j] = maze[0][k][x][y++];
+            x++;
+        }
+    }
+    
+    for(int k=0;k<5;k++)
+    {
+        x=0;
+        for(int j=0;j<5;j++)
+        {
+            y=0;
+            for(int i=4;i>=0;i--)
+                maze[3][k][i][j] = maze[0][k][x][y++];
+            x++;
+        }
+    }
+    
+    /*
+    for(int l=0;l<4;l++)
+    {
+        for(int k=0;k<5;k++)
+        {
+            for(int i=0;i<5;i++)
+            {
+                for(int j=0;j<5;j++)
+                    printf("%d ", maze[l][k][i][j]);
+                printf("\n");
+            }
+            printf("\n");
+        }
+        printf("\n");
+    }
+    */
+    
+    solve(0);
+}
+    
+int main()
+{
+  
+    init();
+    if(minn == MAX)
+        printf("-1");
+    else
+        printf("%d", minn);
+    return 0;
+}
