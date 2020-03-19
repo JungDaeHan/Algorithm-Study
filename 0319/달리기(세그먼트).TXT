@@ -1,0 +1,83 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int IDT[2500000] ={0,};
+vector<pair<int,int>> v;
+
+int query(int base,int left,int right)
+{
+    //0부터 해당 인덱스 전까지의 부분합이 곧 그 넘어갈 수 있는 애들의 수임.
+    int l=0,r=0;
+    left += base;
+    right += base;
+    
+    while(left <= right)
+    {
+        // 왼쪽 끝이 홀수이거나, 오른쪽 끝이 짝수이면 부모까지 못가고 따로 더해야함.
+        // 그후 왼쪽건 하나를 더해주고, 오른쪽건 하나를 빼줘서 그 사이의 부분합을 구함.
+        if(left%2) l += IDT[left++];
+        if(!(right%2)) r += IDT[right--];
+        left>>=1; right>>=1;
+    }
+    return l+r;
+}
+
+void update(int base,int x)
+{
+    // 먼저 들어온 인덱스에 1을 넣어 부분합을 구해주면, 그 후의 인덱스가 앞지를 수 있는 사람 수를 파악할 때
+    // 자신의 바로 전 인덱스까지의 부분합을 구하면 재낄 수 있는 사람의 수가 나옴. 어렵다..
+    int idx = base + x;
+    IDT[idx] = 1;
+    idx >>= 1;
+    
+    while(idx)
+    {
+        IDT[idx] = IDT[idx<<1] + IDT[idx<<1|1];
+        idx>>=1;
+    }
+    return;
+}   
+
+void solve(int base)
+{
+    int ans[500002] = {0,};
+    
+    int len = v.size();
+    for(int i=0;i<len;i++)
+    {
+        ans[v[i].second-1] = v[i].second - query(base,0,v[i].second-1);
+        update(base,v[i].second-1);
+    }
+   
+    for(int i=0;i<len;i++)
+        printf("%d \n", ans[i]);
+}
+
+void init()
+{
+    int N,base,idx,tmp;
+    scanf("%d", &N);
+    
+    for(base=1;base<N;base*=2);
+    idx = base; //세그먼트 트리 초기화
+    
+    for(int i=0;i<N;i++)
+    {
+        scanf("%d", &tmp);
+        v.push_back({tmp,i+1});
+    }
+    
+    sort(v.begin(),v.end());
+    solve(idx);
+    return;   
+}
+
+int main()
+{
+    init();
+    return 0;
+}
