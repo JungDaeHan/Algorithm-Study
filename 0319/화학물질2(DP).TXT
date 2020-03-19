@@ -1,0 +1,97 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <cstring>
+#include <algorithm>
+
+#define MAX 999999999
+#define MIN(a,b) (a)>(b) ? (b) : (a)
+
+using namespace std;
+
+int T,N;
+int mapp[101][101];
+int rowcol[100][2];
+vector<pair<int,int>> v;
+int dparr[21][21];
+
+void solve()
+{
+	int k,l;
+
+	for(int i=0;i<N;i++)
+	{
+		for(int j=0;j<N;j++)
+		{
+			if(mapp[i][j])
+			{
+				k=i; l=j;
+				while(mapp[k][j] && k<N) k++;
+				while(mapp[i][l] && l<N) l++;
+
+				k-=i; l-=j;
+				rowcol[k][0] = l;
+				rowcol[l][1] = k;
+
+				for(int a=i;a<k+i;a++)
+					for(int b=j;b<l+j;b++)
+						mapp[a][b] = 0;
+			}
+		}
+	}
+
+	//맨 앞 행렬 찾기
+	while(rowcol[k][1])
+		k = rowcol[k][1];
+	
+	//계산할 수 있는 행렬 순서대로 벡터에 넣기
+	while(rowcol[k][0])
+	{
+		v.push_back(make_pair(k,rowcol[k][0]));
+		k = rowcol[k][0];
+	}
+}
+
+int dp(int s,int e)
+{
+	if(s==e) return 0;
+	if(dparr[s][e]) return dparr[s][e]; //s부터 e 까지의 값이 저장되어있다면 그것을 보냄(memo)
+
+	int minn = MAX;
+
+	for(int i=s; i<e; i++)
+	{
+		int value = dp(s,i) + dp(i+1,e) + v[s].first * v[i].second * v[e].second;
+		minn = MIN(minn,value);
+	}
+
+	return dparr[s][e] = minn;
+}
+
+void init()
+{
+	scanf("%d", &T);
+	for(int tc=1;tc<=T;tc++)
+	{
+		v.clear();
+		memset(rowcol,0,sizeof(rowcol));
+		memset(dparr,0,sizeof(dparr));
+
+		scanf("%d", &N);
+		for(int i=0;i<N;i++)
+			for(int j=0;j<N;j++)
+				scanf("%d", &mapp[i][j]);
+
+		solve();
+		//for(int i=0;i<v.size();i++)
+		//	printf("%d %d \n", v[i].first, v[i].second);
+
+		printf("#%d %d\n", tc,dp(0,v.size()-1));
+	}
+}
+
+int main()
+{
+	init();
+	return 0;
+}

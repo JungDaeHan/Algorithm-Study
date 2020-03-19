@@ -1,0 +1,82 @@
+#include <cstdio>
+#include <iostream>
+#include <cstring>
+#include <vector>
+#include <queue>
+
+#define MAX 999999999
+
+using namespace std;
+
+int N;
+int mapp[1001][1001];
+int visited[1001];
+vector<int> v[1001];
+queue<int> q;
+int minn;
+
+void solve(int n)
+{
+    int d = 1;
+    q.push(n);
+    visited[n] = 1;
+    int sum = 0;
+    int tmp;
+    
+    while(q.empty() != 1)
+    {
+        int len = q.size();
+        for(int i=0;i<len;i++)
+        {
+            tmp = q.front();
+            q.pop();
+            for(int j=0;j<v[tmp].size();j++)
+            {
+                if(!visited[v[tmp][j]])
+                {
+                    q.push(v[tmp][j]);
+                    sum += d;
+                    if(sum > minn) return;
+                    visited[v[tmp][j]] = 1;
+                }
+            }
+        }
+        d++;
+    }
+    minn = sum;
+}
+ 
+void init()
+{
+    int T;
+    scanf("%d", &T);
+    for(int tc=1; tc<=T;tc++)
+    {
+        minn = MAX;
+        scanf("%d", &N);
+        for(int i=0;i<N;i++)
+            v[i].clear();
+        
+        for(int i=0;i<N;i++)
+            for(int j=0;j<N;j++)
+            {
+                scanf("%d", &mapp[i][j]);
+                if(mapp[i][j])
+                    v[i].push_back(j);
+            }
+
+        for(int i=0;i<N;i++)
+        {
+            while(q.empty() != 1) q.pop();
+            memset(visited,0,sizeof(visited));
+            solve(i);
+        }
+        printf("#%d %d\n", tc,minn);
+    }
+}
+ 
+int main()
+{
+    init();
+    return 0;
+}
