@@ -1,0 +1,85 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <string>
+#include <cstring>
+
+#define abs(X) (X) > 0 ? (X) : -(X)
+
+using namespace std;
+
+char result[100000];
+int globalCnt;
+
+struct Trie{
+    int cnt = 0;
+    bool last;
+    Trie *next[27]; // 알파벳 수 만큼
+    
+    Trie() : last(false) { // 생성자
+        memset(next,0,sizeof(next));
+    }
+    ~Trie() { //소멸자
+        for(int i=0;i<26;i++) 
+            if(next[i])
+                delete next[i];
+    }
+    void insert(const char* word) {
+        if(*word == 0 )
+            last = true; // 여기가 단어의 마지막
+        else {
+            int key = *word - 'a';
+            if(next[key] == NULL)
+                next[key] = new Trie(); // insert할 Trie 구조체 할당
+            next[key]->insert(word+1); // 다음 단어를 insert
+        }
+    }
+    void printResult(Trie *node,int N,int len)
+    {
+        if(globalCnt > N ) return;
+        if(globalCnt == N)
+        {
+            for(int i=0;i<len;i++)
+                printf("%c", result[i]+97);
+            printf("\n");
+            return;
+        }
+        for(int i=0;i<26;i++)
+        {
+            if(node->next[i] == NULL) continue;
+            result[len] = i;
+            globalCnt++;
+            printResult(node->next[i],N,len+1);
+        }
+    }      
+};
+
+void init()
+{
+    int T,N;
+    scanf("%d", &T);
+    for(int tc=1; tc<=T;tc++)
+    {
+        globalCnt = 0;
+        scanf("%d", &N);
+        string word;
+        Trie* root = new Trie;    
+        cin >> word;
+        int len = word.length();
+        for(int i=0;i<len;i++)
+        {
+            string tmpword = word.substr(i);
+            root->insert(tmpword.c_str());
+        }
+        printf("#%d ",tc);
+        root->printResult(root,N,0);
+        delete root;
+    }
+}
+
+int main()
+{
+    init();
+    return 0;
+}

@@ -1,0 +1,132 @@
+#include <cstdio>
+#include <iostream>
+#include <queue>
+#include <vector>
+ 
+#define MAX 999999999
+ 
+using namespace std;
+ 
+int direction[8][2] = { {-1,0}, {1,0}, {0,-1}, {0,1} ,{1,1}, {-1,-1}, {-1,1}, {1,-1} };
+char map[50][50];
+int N;
+vector<pair<int, int>> Bpoint[300000];
+vector<pair<int, int>> Epoint;
+int min_dist = MAX;
+ 
+bool isInE(int idx)
+{
+	int j;
+ 
+	for (int i = 0; i < 3; i++)
+	{
+		for (j = 0; j < 3; j++)
+		{
+            //printf("(%d,%d) ", Bpoint[idx][i].first, Bpoint[idx][i].second );
+            //printf("(%d,%d) ", Epoint[j].first, Epoint[j].second);
+			if ((Bpoint[idx][i].first == Epoint[j].first) && 
+                (Bpoint[idx][i].second == Epoint[j].second))
+				break;
+		}
+		if (j >= 3)
+			return 0;
+	}
+	return 1;
+ 
+}
+ 
+int moving(int dir,int idx)
+{
+	// row_col 가로(0)인지 세로(1)인지 확인 후, dir 0 상, 1 하, 2 좌, 3 우, 4 회전으로 움직임
+	// 근데 이전으로 돌아가야 다음껄 볼 때 재귀가 됨
+    
+	int tx, ty;
+	int checkIdx;
+ 
+	if (dir == 4)
+	{
+		for (checkIdx = 0; checkIdx < 8; checkIdx++)
+		{
+			tx = Bpoint[idx][1].first + direction[checkIdx][0];
+			ty = Bpoint[idx][1].second + direction[checkIdx][1];
+ 
+			if (tx < 0 || tx >= N || ty < 0 || ty >= N || map[tx][ty] == 1) break;
+		}
+		if (checkIdx < 8)
+			return -1;
+ 
+		Bpoint[idx+1].push_back(make_pair(Bpoint[idx][0].first + 1,Bpoint[idx][0].second - 1));
+		Bpoint[idx+1].push_back(make_pair(Bpoint[idx][1].first,Bpoint[idx][1].second));                         
+		Bpoint[idx+1].push_back(make_pair(Bpoint[idx][2].first - 1,Bpoint[idx][2].second + 1));
+        
+        return 1;
+	}
+    else
+    {
+        for(checkIdx=0; checkIdx<3;checkIdx++)
+        {
+            tx = Bpoint[idx][0].first + direction[checkIdx][0];
+            ty = Bpoint[idx][0].second + direction[checkIdx][1];
+            
+            if(tx < 0 || tx >= N || ty < 0 || ty >= N || map[tx][ty] == 1 ) break;
+        }
+        
+        if(checkIdx < 3)
+            return -1;
+        
+        for(int i=0;i<3;i++)
+            Bpoint[idx+1].push_back(make_pair(Bpoint[idx][i].first + direction[dir][0],
+                                              Bpoint[idx][i].second + direction[dir][1]));
+    }
+    
+    for(int i=0;i<3;i++)
+        printf("(%d,%d) ",Bpoint[idx+1][i].first, Bpoint[idx+1][i].second);
+    printf("\n");
+ 
+	return 1;
+}
+ 
+void DFS(int tmp_dist,int idx)
+{
+	if(isInE(idx)) // 통나무가 E까지 옮겨졌다면
+	{
+		if (min_dist > tmp_dist)
+			min_dist = tmp_dist;
+		return;
+	}
+ 
+	for (int i = 0; i < 5; i++)
+	{
+		if (moving(i, idx) == -1) // bpoint[1] 이 갱신된 상태.
+			continue;
+		DFS(tmp_dist + 1, idx + 1); // 여기 들어가서 계속해서 갱신됨.
+	}
+ 
+}
+ 
+int main()
+{
+	scanf("%d", &N);
+ 
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			scanf(" %c", &map[i][j]);
+ 
+			if (map[i][j] == 'B')
+				Bpoint[0].push_back(make_pair(i, j));
+			else if (map[i][j] == 'E')
+				Epoint.push_back(make_pair(i, j));
+		}
+	}
+    
+	DFS(0,0);
+ 
+	if (min_dist == MAX)
+		printf("0");
+	else
+		printf("%d", min_dist);
+ 
+	return 0;
+}
