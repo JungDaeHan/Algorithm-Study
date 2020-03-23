@@ -1,0 +1,33 @@
+def solution(food_times, k):
+    answer = 0
+    arr = sorted(food_times)
+    idxarr = [food_times.index(arr[i]) for i in range(0,len(food_times))]
+    
+    for i in range(0,len(food_times)):
+        tmpk = int(k / ( len(food_times) - i ))
+    
+        if food_times[idxarr[i]] >= tmpk :
+            for j in range(i,len(food_times)):
+                food_times[idxarr[j]] -= tmpk
+            k %= ( len(food_times) - i )
+            break
+        else :
+            k -= food_times[idxarr[i]] * len(food_times)
+            tmp = food_times[idxarr[i]]
+            for j in range(i,len(food_times)):
+                food_times[idxarr[j]] -= tmp
+    idx = 0        
+    while idx == len(food_times) :
+        if(food_times[idx] != 0) :
+            break
+            
+    if idx == len(food_times):
+        return -1
+    
+    while k != 0:
+        if food_times[idx] != 0:
+            food_times[idx]-=1
+            k-=1
+        idx = (idx+1)%len(food_times)
+    
+    return idx+1

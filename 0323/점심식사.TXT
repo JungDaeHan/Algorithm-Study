@@ -1,0 +1,166 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+
+#define MAX 999999999
+#define abs(X) (X) > 0 ? (X) : -(X)
+using namespace std;
+
+typedef struct Queue
+{
+    int data[1000];
+    int f=0,r=0;
+    
+    void init() { f=0;r=0; }
+    void pop() { f++; }
+    int front(){ return data[f]; }
+    void plus(int x) { data[f+x]++; }
+    void push(int x) { data[r++] = x; }
+    int size() { return r-f; }
+    int empty() { if(r-f == 0) return 1; else return 0; }
+} Queue;
+
+int mapp[50][50];
+int N,minn;
+int selected[10];
+vector<pair<int,int>> Person;
+vector<pair<int,pair<int,int>>> Stair;
+int readyQ[2][10];
+
+void initN()
+{
+    Person.erase(Person.begin(),Person.end());
+    Stair.erase(Stair.begin(),Stair.end());
+    minn = MAX;
+    scanf("%d", &N);
+    for(int i=0;i<N;i++)
+        for(int j=0;j<N;j++)
+        {
+            scanf("%d", &mapp[i][j]);
+            if(mapp[i][j] == 1)
+                Person.push_back({i,j});
+            else if(mapp[i][j] > 1)
+                Stair.push_back({mapp[i][j],{i,j}});
+        }            
+}
+
+void movingStair(int p1,int p2)
+{
+    //1초 증가할 때마다 계단 상황을 봐줌.
+    Queue StairQ[2];
+    int len1 = Stair[0].first;
+    int len2 = Stair[1].first;
+    
+    int time = 1;
+    //time 이 증가할 때마다 readyQ 거리 1씩 다 감소
+    //0이 된 애들을 큐에 넣음 큐 사이즈가 3이면 대기.
+    //큐에 들어간 애들이 len 만큼 늘어났다면 큐에서 pop
+    int f1=0,f2=0;
+    
+    while(1)
+    {
+        if(StairQ[0].empty() == 1 && StairQ[1].empty() == 1 && f1 == p1 && f2 == p2 )
+            break;
+            
+        while(StairQ[0].empty() != 1 && StairQ[0].front() == len1)
+            StairQ[0].pop();
+        while(StairQ[1].empty() != 1 && StairQ[1].front() == len2)
+            StairQ[1].pop();
+        
+        for(int i=f1;i<p1;i++)
+        {
+            readyQ[0][i]--;
+            if(readyQ[0][i] <= 0 && StairQ[0].size() < 3)
+            {
+                StairQ[0].push(0);
+                f1++;
+            }
+        }
+                
+        for(int i=f2;i<p2;i++)
+        {
+            readyQ[1][i]--;
+            if(readyQ[1][i] <= 0 && StairQ[1].size() < 3)
+            {
+                StairQ[1].push(0);
+                f2++;
+            }
+        }
+        
+        for(int i=0;i<StairQ[0].size();i++)
+            StairQ[0].plus(i);
+        for(int i=0;i<StairQ[1].size();i++)
+            StairQ[1].plus(i);
+        
+        time++;
+    }
+    
+    if(minn > time)
+        minn = time;
+}
+    
+void split()
+{
+    int p1=0,p2=0;
+    int t1,t2;
+    
+    for(int i=0;i<Person.size();i++)
+    {
+        if(selected[i] == 1 ) // 1번 계단 모임
+        {
+            t1 = abs(Person[i].first - Stair[0].second.first);
+            t2 = abs(Person[i].second - Stair[0].second.second);
+            if(t1 + t2 > minn)
+                return;
+            readyQ[0][p1++] = t1 + t2;
+        }
+        else
+        {
+            t1 = abs(Person[i].first - Stair[1].second.first);
+            t2 = abs(Person[i].second - Stair[1].second.second);
+            if(t1 + t2 > minn)
+                return;
+            readyQ[1][p2++] = t1 + t2;
+        }
+    }
+    
+    sort(readyQ[0],readyQ[0]+p1);
+    sort(readyQ[1],readyQ[1]+p2);
+    movingStair(p1,p2);
+    return;
+}
+    
+void solve(int idx,int cnt,int limit)
+{
+    if(cnt == limit)
+    {
+        split();
+        return;
+    }
+    
+    for(int i=idx; i<Person.size(); i++)
+    {
+        if(selected[i] == 1) continue;
+        selected[i] = 1;
+        solve(i+1,cnt+1,limit);
+        selected[i] = 0;
+    }
+}
+
+int main()
+{
+    int T;
+    scanf("%d",&T);
+    
+    for(int tc=1;tc<=T;tc++)
+    {
+        initN();
+        for(int i=0;i<=Person.size();i++)
+            solve(0,0,i);    
+        printf("#%d %d\n", tc,minn);
+    }
+    
+    return 0;
+}
