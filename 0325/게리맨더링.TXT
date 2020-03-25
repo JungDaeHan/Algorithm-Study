@@ -1,0 +1,131 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <queue>
+
+#define abs(x,y) (x)-(y) > 0 ? (x)-(y) : (y)-(x)
+#define MAX 10000
+
+using namespace std;
+
+
+int person[11];
+vector<int> Node[11];
+int selected[11];
+int visited[11]; // 갱신
+int N,minDiff=MAX;
+queue<int> Q;
+int total_sum = 0;
+
+// 다 돌면서 visited 0 이면 섬 하나 올려주고 세개이상이면 그냥 -1
+// 다 돌았는데 2 이면 섬의 차 구해서 리턴. BFS로 쌉가능.
+
+int isConnected()
+{
+	//select 로 선택된 팀의 인구수만 구함
+	//근데 cnt가 3이상일 경우 인접한 두팀으로 나눠지지 않은 경우이므로 -1
+
+	int cnt = 0;
+	int x;
+	int sum = 0;
+	int tmp;
+	
+	for (int i = 1; i <= N; i++)
+	{
+		if (visited[i] == 0) 
+		{
+			visited[i] = 1;
+			cnt++;
+			Q.push(i);
+			if (selected[i] == 1)
+				sum += person[i];
+		}
+
+		while (Q.empty() != 1)
+		{
+			x = Q.front();
+			Q.pop();
+
+			for (int j = 0; j < Node[x].size(); j++)
+			{
+				if (visited[Node[x][j]] == 1 || selected[x] != selected[Node[x][j]])
+					continue;
+
+				visited[Node[x][j]] = 1;
+				Q.push(Node[x][j]);
+				if(selected[x] == 1)
+					sum += person[Node[x][j]];
+			}
+		}
+
+		if (cnt >= 3)
+			return -1;
+
+		//printf("sum : %d\n", sum);
+	}
+	tmp = total_sum - sum;
+	tmp = abs(tmp, sum);
+
+	return tmp;
+	
+}
+
+void permu(int idx, int cnt,int limit)
+{
+	if (cnt == limit)
+	{
+		for (int i = 1; i <= N; i++)
+			visited[i] = 0;
+
+		int diff = isConnected();
+		if (diff == -1)
+			return;
+
+		if (minDiff > diff)
+			minDiff = diff;
+
+		return;
+	}
+
+	for (int i = idx; i <= N; i++)
+	{
+		if (selected[i] == 1)
+			continue;
+		selected[i] = 1;
+		permu(i, cnt + 1,limit);
+		selected[i] = 0;
+	}
+}
+
+int main()
+{
+	int edge,tmp;
+	scanf("%d", &N);
+
+	for (int i = 1; i <= N; i++)
+	{
+		scanf("%d", &person[i]);
+		total_sum += person[i];
+	}
+
+	for (int i = 1; i <= N; i++)
+	{
+		scanf("%d", &edge);
+		for (int j = 1; j <= edge; j++)
+		{
+			scanf("%d", &tmp);
+			Node[i].push_back(tmp);
+			Node[tmp].push_back(i);
+		}
+	}
+
+	for (int i = 1; i <= N - 1; i++)
+		permu(1, 0, i);
+
+	if (minDiff == MAX)
+		printf("-1");
+	else
+		printf("%d", minDiff);
+
+	return 0;
+}

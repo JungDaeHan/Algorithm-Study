@@ -1,0 +1,159 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+#include <queue>
+
+#define abs(x,y) (x) - (y) > 0 ? (x)-(y) : (y)-(x)
+
+using namespace std;
+
+int dir[3][2] = { {0,-1}, {-1,0}, {0,1} };
+int max_attack = 0;
+int real_map[16][15];
+int map[16][15]; // N+1 궁수의 행
+int visited[16][15];
+int cal_map[16][15];
+int N, M, D;
+int selected[15] = { 0, };
+
+int cal()
+{
+	int goong[3]; // 궁수의 위치
+	pair<int, int> cut[3]; //잡을 애 위치
+	queue<int> Q[3]; // x,y,D
+
+	// N-1 번째 행에서부터 0행까지 궁수들이 올라가면서 애들을 잡음.
+	// BFS로 각자의 잡을 적을 확인, 다음 큐에서 나온 애의 dist 가 D를 넘을경우 탈출
+	// 적의 위치를 (-1,-1) 로. 왼 위 오 순서로 보면 왼쪽 적부터 보게됨.
+	int sum = 0;
+	int goong_idx = 0;
+	int x,y,tmp_D,tx, ty;
+
+	for (int i = 0; i < M; i++)
+		if (selected[i] == 1)
+			goong[goong_idx++] = i ;
+
+	for (int i = N-1; i >= 0; i--)
+	{
+		for (int a = 0; a < 3; a++) // 잡을 적 위치 초기화
+			cut[a] = make_pair(-1, -1);
+
+		for (int k = 0; k < 3; k++)
+		{
+			// 궁수를 하나씩 보면서 자신의 가장 가까운 적 탐색
+			// 없을 경우 cut 에는 -1,-1 이 들어있음
+			for (int a = 0; a <= i; a++)
+				for (int b = 0; b < M; b++)
+					visited[a][b] = 0;
+
+			Q[0].push(i);
+			Q[1].push(goong[k]);
+			Q[2].push(1);
+			visited[i][goong[k]] = 1;
+
+			while (Q[0].empty() != 1)
+			{
+				x = Q[0].front();
+				y = Q[1].front();
+				tmp_D = Q[2].front();
+
+				/*
+				printf("x : %d y : %d tmp_D : %d \n", x, y, tmp_D);
+
+				for (int row = 0; row < N; row++)
+				{
+					for (int col = 0; col < M; col++)
+						printf("%d ", visited[row][col]);
+					printf("\n");
+				}
+				printf("\n");
+				*/
+
+				if (tmp_D > D) // BFS 로 도는데 D 를 벗어날 범위 탐색인 경우
+					break;
+
+				Q[0].pop(); Q[1].pop(); Q[2].pop();
+
+				if (map[x][y] == 1 && tmp_D <= D) // 찾았으면 이 궁수는 선택완료
+				{
+					cut[k] = make_pair(x, y);
+					break;
+				}
+
+				for (int l = 0; l < 3; l++) // 왼 위 오 보면서 탐색
+				{
+					tx = x + dir[l][0];
+					ty = y + dir[l][1];
+
+					if (tx < 0 || ty < 0 || ty >= M || visited[tx][ty] == 1) continue;
+
+					visited[tx][ty] = 1;
+					Q[0].push(tx);
+					Q[1].push(ty);
+					Q[2].push(tmp_D + 1);
+				}
+			}
+		
+			while (Q[0].empty() != 1)
+			{
+				Q[0].pop(); Q[1].pop(); Q[2].pop();
+			}
+		}
+		
+		for (int a = 0; a < 3; a++)
+		{
+			if (cut[a].first == -1)
+				continue;
+
+			if (map[cut[a].first][cut[a].second] == 1)
+			{
+				map[cut[a].first][cut[a].second] = 0;
+				sum++;
+			}
+		}
+
+	}
+
+	return sum;
+}
+
+void position(int idx, int cnt)
+{
+	if (cnt == 3)
+	{
+		for (int i = 0; i < N; i++)
+			for (int j = 0; j < M; j++)
+				map[i][j] = real_map[i][j];
+
+		int tmp = cal();
+
+		if (max_attack < tmp)
+			max_attack = tmp;
+
+		return;
+	}
+
+	for (int i = idx; i < M; i++)
+	{
+		if (selected[i] == 1)
+			continue;
+		selected[i] = 1;
+		position(i+1, cnt + 1);
+		selected[i] = 0;
+	}
+}
+
+int main()
+{
+	scanf("%d %d %d", &N, &M, &D);
+
+	for (int i = 0; i < N; i++)
+		for (int j = 0; j < M; j++)
+			scanf("%d", &real_map[i][j]);
+
+	position(0, 0);
+
+	printf("%d", max_attack);
+
+	return 0;
+}

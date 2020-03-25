@@ -1,0 +1,164 @@
+#include <cstdio>
+#include <iostream>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+int dice[10];
+int selected[10];
+int max_score = 0;
+
+int cal()
+{
+	//
+	int map[4][24] = { {0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,0,0,0},
+						  {0,0,0,0,0,0,13,16,19,25,30,35,40,0,0,0,0,0,0,0,0,0,0,0},
+						  {0,0,0,0,0,0,0,0,0,0,0,22,24,25,30,35,40,0,0,0,0,0,0,0},
+						  {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,28,27,26,25,30,35,40,0} };
+
+	pair<int, int> horse[5] = { make_pair(0,0), };
+	// 배열번호 : 말 번호, first : 현재 열번호, second : 현재 행번호
+
+	//selected 의 인덱스에 해당하는 말이 그 해당 인덱스의 dice 만큼 움직이는데 5에 멈추면 1, 10 -> 2, 15 -> 3
+
+	int sum = 0;
+
+	//for (int i = 0; i < 10; i++)
+	//	printf("%d ", selected[i]);
+	//printf("\n");
+
+	for (int i = 0; i < 10; i++)
+	{
+		//for (int j = 1; j <= 4; j++)
+		//	printf("%d %d\n", horse[j].first, horse[j].second);
+		//printf("\n");
+		
+		int now = selected[i];
+
+		// 이미 도착점인데 또 가려는 경우에는 바로 0 리턴, 있을 수 없는 경우.
+		if ((horse[now].second == 0 && horse[now].first >= 21) || (horse[now].second == 1 && horse[now].first >= 13)
+			|| (horse[now].second == 2 && horse[now].first >= 17) || (horse[now].second == 3 && horse[now].first >= 23))
+			return 0;
+
+		horse[now].first += dice[i];
+
+		// 다이스를 더했는데 도착점 이상이면 인덱스 초과할 수도 있으므로 바로 컨티뉴
+		if (horse[now].second == 0 && horse[now].first >= 21)
+		{
+			horse[now].first = 21;
+			continue;
+		}
+		else if (horse[now].second == 1 && horse[now].first >= 13)
+		{
+			horse[now].first = 13;
+			continue;
+		}
+		else if (horse[now].second == 2 && horse[now].first >= 17)
+		{
+			horse[now].first = 17; 
+			continue;
+		}
+		else if (horse[now].second == 3 && horse[now].first >= 23)
+		{
+			horse[now].first = 23;
+			continue;
+		}
+
+		if (horse[now].first == 5 && horse[now].second == 0)
+			horse[now].second++;
+		else if (horse[now].first == 10 && horse[now].second == 0)
+			horse[now].second += 2;
+		else if (horse[now].first == 15 && horse[now].second == 0)
+			horse[now].second += 3;
+
+		for (int j = 1; j <= 4; j++)
+		{
+			if (now == j)
+				continue;
+
+			// 이미 있는 말 위치에 간다면 있을 수 없는 경우이므로 바로 리턴.
+			if (horse[j].first == horse[now].first && horse[j].second == horse[now].second)
+			{
+				// 근데 도착점에 있던 애면 상관 없으니까 그냥 컨티뉴
+				if ((horse[now].second == 0 && horse[now].first == 21) ||
+					(horse[now].second == 1 && horse[now].first == 13) ||
+					(horse[now].second == 2 && horse[now].first == 17) ||
+					(horse[now].second == 3 && horse[now].first == 23))
+					continue;
+				return 0;
+			}
+
+			if( (map[horse[now].second][horse[now].first] == 25 && 
+				 map[horse[j].second][horse[j].first] == 25) ||
+				(map[horse[now].second][horse[now].first] == 35 &&
+				map[horse[j].second][horse[j].first] == 35) ||
+				(map[horse[now].second][horse[now].first] == 40 &&
+				map[horse[j].second][horse[j].first] == 40) )
+				return 0;
+
+			if (map[horse[now].second][horse[now].first] == 25 &&
+				map[horse[j].second][horse[j].first] == 25 &&
+				(horse[now].second != 1 && horse[now].first != 15))
+				return 0;
+
+		}
+
+		if ((horse[now].second == 1 && horse[now].first == 5) ||
+			(horse[now].second == 2 && horse[now].first == 10) ||
+			(horse[now].second == 3 && horse[now].first == 15))
+			sum += map[0][horse[now].first];
+		else
+			sum += map[horse[now].second][horse[now].first];
+
+
+		/*
+		if (sum == 218)
+		{
+			for (int i = 0; i < 10; i++)
+				printf("%d ", selected[i]);
+			printf("\n");
+
+			for (int j = 1; j <= 4; j++)
+				printf("%d %d\n", horse[j].first, horse[j].second);
+			printf("\n");
+		}
+		*/
+		
+
+	}
+
+	return sum;
+}
+
+void permu(int idx)
+{
+	if (idx == 10)
+	{
+		int tmp = cal();
+
+		if (max_score < tmp)
+			max_score = tmp;
+
+		return;
+	}
+
+	selected[idx] = 1; permu(idx + 1);
+	selected[idx] = 2; permu(idx + 1);
+	selected[idx] = 3; permu(idx + 1);
+	selected[idx] = 4; permu(idx + 1);
+
+}
+
+int main()
+{
+	for (int i = 0; i < 10; i++)
+		scanf("%d", &dice[i]);
+
+	permu(0);
+
+	printf("%d", max_score);
+
+
+	return 0;
+}
