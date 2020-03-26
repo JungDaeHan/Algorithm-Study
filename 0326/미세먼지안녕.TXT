@@ -1,0 +1,188 @@
+#include <cstdio>
+#include <queue>
+
+using namespace std;
+
+int dir[4][2] = { {0,1}, {0,-1}, {1,0}, {-1,0} };
+
+// 큐의 value 를 미리 넣어줘야 합산된 값에서 확산이 이루어지지 않음.
+
+queue<int> Q[2][3]; // x,y,value
+int clear[2];
+int map[50][50];
+int T,R,C;
+
+void calculate()
+{
+	// x의 -1 부터 시작. 0까지 앞으로 땡김. x 0 이고 y 0 부터 시작. 오른쪽끝까지 왼쪽으로 땡김. x 0 부터 -1까지. y 끝부터 1까지. 다 땡겨
+
+	for(int i=clear[0]-1; i>0; i--)
+		map[i][0] = map[i-1][0];
+
+	for(int i=0;i<C-1; i++)
+		map[0][i] = map[0][i+1];
+
+	for(int i=0; i<clear[0]; i++)
+		map[i][C-1] = map[i+1][C-1];
+
+	for(int i=C-1; i>1 ; i--)
+		map[clear[0]][i] = map[clear[0]][i-1];
+
+	map[clear[0]][1] = 0;
+
+	// clear[1]-1 부터 시작. R-1 까지 앞으로. y 0 부터 끝까지 땡김. x R-1 부터 clear -1 까지 . y 끝부터 1 까지.
+
+	for(int i=clear[1]+1; i<R-1; i++)
+		map[i][0] = map[i+1][0];
+
+	for(int i=0;i<C-1;i++)
+		map[R-1][i] = map[R-1][i+1];
+
+	for(int i=R-1; i>clear[1]; i--)
+		map[i][C-1] = map[i-1][C-1];
+
+	for(int i=C-1; i>1; i--)
+		map[clear[1]][i] = map[clear[1]][i-1];
+
+	map[clear[1]][1] = 0;
+
+			
+}
+	
+
+
+void BFS()
+{
+	int time = 0;
+	int xp;
+	int yp;
+	int value;
+	int tmpx;
+	int tmpy;
+	int cnt;
+	int br = 0;
+
+	/*
+	for(int i=0;i<R;i++)
+	{
+		for(int j=0;j<C;j++)
+			printf("%d ", map[i][j]);
+		printf("\n");
+	}
+	printf("\n");*/
+
+	while(Q[br][0].empty() != 1)
+	{
+
+		cnt = 0;
+		xp = Q[br][0].front();
+		yp = Q[br][1].front();
+		value = Q[br][2].front();
+
+		Q[br][0].pop();
+		Q[br][1].pop();
+		Q[br][2].pop();
+
+		for(int i=0;i<4;i++)
+		{
+			tmpx = xp + dir[i][0];
+			tmpy = yp + dir[i][1];
+
+			if(tmpx >= 0 && tmpx < R && tmpy >= 0 && tmpy < C && map[tmpx][tmpy] != -1)
+			{
+				map[tmpx][tmpy] += value/5;
+				cnt++;
+			}
+		}
+
+		map[xp][yp] -= value/5*cnt;
+
+
+		if(Q[br][0].empty() == 1)
+		{
+			calculate();
+
+			time++;
+
+			if(time == T)
+				return;
+
+			br = (br+1)%2;
+
+			for(int i=0;i<R;i++)
+			{
+				for(int j=0;j<C;j++)
+				{
+					if(map[i][j] != -1 && map[i][j] != 0)
+					{
+						Q[br][0].push(i);
+						Q[br][1].push(j);
+						Q[br][2].push(map[i][j]);
+					}
+				}
+			}
+		}
+	}
+
+}
+
+int main()
+{
+	int flag = 0 ;
+	int cnt = 0;
+	int br = 0;
+
+	scanf("%d %d %d", &R, &C, &T);
+
+	for(int i=0;i<R;i++)
+	{
+		for(int j=0;j<C;j++)
+		{
+			scanf("%d", &map[i][j]);
+
+			if(map[i][j] == -1 && flag == 0)
+			{
+				clear[0] = i;
+				clear[1] = i+1;
+				flag = 1;
+				continue;
+			}
+			if(map[i][j] > 0)
+			{
+				Q[br][0].push(i);
+				Q[br][1].push(j);
+				Q[br][2].push(map[i][j]);
+			}
+		}
+	}
+
+	BFS();
+
+	for(int i=0;i<R;i++)
+	{
+		for(int j=0;j<C;j++)
+		{
+			if(map[i][j] != -1 )
+			{
+				cnt+=map[i][j];
+			}
+		}
+	}
+
+	printf("%d", cnt);
+
+	/*
+	while(Q[br][0].empty()!= 1)
+	{
+		Q[br][0].pop();
+		Q[br][1].pop();
+		Q[br][2].pop();
+		Q[br+1][0].pop();
+		Q[br+1][1].pop();
+		Q[br+1][2].pop();
+	}
+	*/
+
+	return 0;
+}
+
