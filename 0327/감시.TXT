@@ -1,0 +1,245 @@
+#include <cstdio>
+#include <iostream>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+int map[8][8];
+int real_map[8][8];
+int N, M;
+int go_dir[4][2] = { {0,1}, {0,-1}, {1,0}, {-1,0} };
+				//  우, 좌, 하, 상
+//0 은 빈칸, 6은 벽, 1~5는 CCTV
+// 1번 3번 4번은 동서남북 존재.
+// 2번은 수평,수직 존재.
+
+typedef struct
+{
+	int x;
+	int y;
+	int num;
+	int dir = -1;
+} cctv;
+
+vector<cctv> cctv_list;
+int min_sum = 64;
+
+int cal()
+{
+	int sum = 0;
+	int d;
+	int x,y;
+
+	for (int i = 0; i < cctv_list.size(); i++)
+	{
+		x = cctv_list[i].x;
+		y = cctv_list[i].y;
+		d = cctv_list[i].dir;
+		//printf("DDD : %d \n", d);
+
+		// 0상 1우 2하 3좌
+		if (cctv_list[i].num == 1)
+		{
+			x += go_dir[d][0];
+			y += go_dir[d][1];
+
+			while (x >= 0 && x < N && y >= 0 && y < M)
+			{
+				if (map[x][y] == 6)
+					break;
+
+				if (map[x][y] == 0)
+					map[x][y] = -1;
+
+				x += go_dir[d][0];
+				y += go_dir[d][1];
+
+			}
+		}
+		else if (cctv_list[i].num == 2)
+		{
+			for (int t = d; t <= d + 1; t++)
+			{
+				x = cctv_list[i].x + go_dir[t][0];
+				y = cctv_list[i].y + go_dir[t][1];
+
+				while (x >= 0 && x < N && y >= 0 && y < M)
+				{
+					if (map[x][y] == 6)
+						break;
+
+					if (map[x][y] == 0)
+						map[x][y] = -1;
+				
+					x += go_dir[t][0];
+					y += go_dir[t][1];
+				}
+			}
+		}
+		else if (cctv_list[i].num == 3)
+		{
+			int cnt = 0;
+			while (cnt < 2)
+			{
+				x = cctv_list[i].x + go_dir[d][0];
+				y = cctv_list[i].y + go_dir[d][1];
+				while (x >= 0 && x < N && y >= 0 && y < M)
+				{
+					if (map[x][y] == 6)
+						break;
+
+					if (map[x][y] == 0)
+						map[x][y] = -1;
+
+					x += go_dir[d][0];
+					y += go_dir[d][1];
+				}
+				// 우 좌 하 상
+				if (d == 0) // 우 하
+					d += 2;
+				else if (d == 1) // 좌 상
+					d += 2;
+				else if (d == 2) // 하 좌
+					d -= 1;
+				else			// 상 우
+					d -= 3;
+
+				x = cctv_list[i].x;
+				y = cctv_list[i].y;
+				cnt++;
+			}
+		}
+		else if (cctv_list[i].num == 4)
+		{
+			int cnt = 0;
+			while (cnt < 3)
+			{
+				x = cctv_list[i].x + go_dir[d][0];
+				y = cctv_list[i].y + go_dir[d][1];
+				while (x >= 0 && x < N && y >= 0 && y < M)
+				{
+					if (map[x][y] == 6)
+						break;
+
+					if (map[x][y] == 0)
+						map[x][y] = -1;
+
+					x += go_dir[d][0];
+					y += go_dir[d][1];
+				}
+				d = (d + 1) % 4;
+				cnt++;
+			}
+		}
+		else
+		{
+			int cnt = 0;
+			d = 0;
+			while (cnt < 4)
+			{
+				x = cctv_list[i].x + go_dir[d][0];
+				y = cctv_list[i].y + go_dir[d][1];
+				while (x >= 0 && x < N && y >= 0 && y < M)
+				{
+					if (map[x][y] == 6)
+						break;
+
+					if (map[x][y] == 0)
+						map[x][y] = -1;
+
+					x += go_dir[d][0];
+					y += go_dir[d][1];
+				}
+				d = (d + 1) % 4;
+				cnt++;
+			}
+		}
+	}
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			if (map[i][j] == 0)
+				sum++;
+		}
+	}
+		
+	return sum;
+}
+
+void solution(int idx,int cnt) // cnt로 분기할 때랑 idx 로 할 때랑 왜 다른건지?
+								// 왜 idx는 마지막 하나가 더나오지?
+{
+	// x 는 이번 cctv의 인덱스
+	if (cnt == cctv_list.size())
+	{
+
+		for (int i = 0; i < N; i++)
+			for (int j = 0; j < M; j++)
+				map[i][j] = real_map[i][j];
+
+		int tmp = cal();
+
+		if (min_sum > tmp)
+			min_sum = tmp;
+
+		return;
+	}
+
+	for (int i = idx; i < cctv_list.size(); i++)
+	{
+		if (cctv_list[i].num == 1 || cctv_list[i].num == 3 ||
+			cctv_list[i].num == 4)
+		{
+			for (int j = 0; j <= 3; j++)
+			{
+				cctv_list[i].dir = j; //우
+				solution(i + 1,cnt+1);
+			}
+		}
+		else if (cctv_list[i].num == 2)
+		{
+			for (int j = 0; j <= 2 ; j++)
+			{
+				if (j == 1)
+					continue;
+				cctv_list[i].dir = j;
+				solution(i+1,cnt+1);
+			}
+		}
+		else
+			solution(i + 1,cnt+1);
+
+	}
+}
+
+int main()
+{
+	cctv C;
+	int idx = 10;
+	scanf("%d %d", &N, &M);
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < M; j++)
+		{
+			scanf("%d", &real_map[i][j]);
+			
+			if (real_map[i][j] >= 1 && real_map[i][j] <= 5)
+			{
+				C.x = i;
+				C.y = j;
+				C.num = real_map[i][j];
+				cctv_list.push_back(C);
+			}			
+		}
+	}
+
+	solution(0,0);
+
+	printf("%d", min_sum);
+
+	return 0;
+}

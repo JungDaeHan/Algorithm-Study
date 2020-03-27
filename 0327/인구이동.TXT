@@ -1,0 +1,111 @@
+#include <cstdio>
+#include <iostream>
+#include <queue>
+#include <cstring>
+
+using namespace std;
+
+#define abs(x,y) (x)-(y) > 0 ? (x)-(y) : (y)-(x);
+
+int map[50][50];
+int moving_list[2500][2];
+int visited[50][50];
+int dir[4][2] = { {1,0}, {-1,0}, {0,1}, {0,-1} };
+int N, L, R;
+int total_moving = 0;
+queue<pair<int, int>> Q;
+
+int BFS()
+{
+	int p = 0; // 값을 바꿔줄 arr의 length
+	int move_x, move_y; // 상하좌우 이동 좌표
+	int tmp; // abs 계산 temp
+	int people; // 해당 연합의 옮길 사람 총 수
+	int done = 1; // 옮길 연합이 없을 경우 0
+	int size; // 연합의 인원 수 배분 사이즈
+
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
+			if (visited[i][j] == 0)
+			{
+				p = 0;
+				visited[i][j] = 1;
+				Q.push(make_pair(i, j));
+				people = map[i][j];
+				
+				moving_list[p][0] = i;
+				moving_list[p++][1] = j;
+			}
+
+			while (Q.empty() != 1)
+			{
+				pair<int, int> x = Q.front();
+				Q.pop();
+
+				for (int k = 0; k < 4; k++)
+				{
+					move_x = x.first + dir[k][0];
+					move_y = x.second + dir[k][1];
+
+					if (move_x < 0 || move_x >= N || move_y < 0 || move_y >= N
+						|| visited[move_x][move_y] == 1) continue;
+
+					tmp = abs(map[x.first][x.second], map[move_x][move_y]);
+
+					if (tmp >= L && tmp <= R)
+					{
+						done = 0; // 아직 옮길 연합이 있다.
+						people += map[move_x][move_y];
+						Q.push(make_pair(move_x, move_y));
+						visited[move_x][move_y] = 1;
+
+						moving_list[p][0] = move_x;
+						moving_list[p++][1] = move_y;
+					}
+				}
+			}
+
+			if (p>1)
+			{
+				size = people / p;
+				//printf("%d =---\n", size);
+				for (int l = 0; l < p; l++)
+					map[moving_list[l][0]][moving_list[l][1]] = size;
+				p = 0;
+			}
+		}
+	}
+
+	if (done == 1)
+		return 1;
+	else
+	{
+		total_moving++;
+		return 0;
+	}
+
+}
+
+int main()
+{
+
+	scanf("%d %d %d", &N, &L, &R);
+
+	for (int i = 0; i < N; i++)
+		for (int j = 0; j < N; j++)
+			scanf("%d", &map[i][j]);
+
+	while (1)
+	{
+		if (BFS() == 1)
+			break;
+		
+		memset(visited, 0, sizeof(visited));
+	}
+
+	printf("%d", total_moving);
+
+	return 0;
+}
