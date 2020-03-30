@@ -1,0 +1,105 @@
+// 마을들의 부분집합을 구하여, 그 부분집합에 해당하는 마을들은 병원을 짓는걸로 간주하고, 그렇게 병원이 지어졌을 때
+// 모든 마을 사람들이 병원을 갈 수 있는지를 체크하고, 갈 수 있다면 병원이 지어진 부분집합 병원들의 비용을 계산하여
+// 현재의 최소 비용이랑 비교한 후 갱신을 한다. 마지막 부분집합까지 계산을 완료하고 최솟값을 출력한다.
+
+#include <cstdio>
+#include <iostream>
+#include <vector>
+
+#define MAX 999999999
+
+using namespace std;
+
+int T,N;
+int minn;
+int cost[22]; // 각 마을의 병원 비용
+int mapp[22][22]; 
+int selected[22]; 
+vector<int> node[22];
+
+bool check()
+{
+    // 해당 부분집합이 모든 마을이 병원을 갈 수 있게 하는지를 확인
+    for(int i=0;i<N;i++)
+    {
+        if(selected[i] == 1) continue;
+        
+        int len = node[i].size();
+        int idx = 0;
+        for(idx=0;idx<len;idx++)
+        {
+            if(selected[ node[i][idx] ] == 1 ) // 이웃 마을이 병원인가 
+                break;
+        }
+        if(idx == len)
+            return false;
+    }
+    
+    return true;
+}
+
+int cal()
+{
+    // 부분집합(병원으로 선정된) 마을들의 비용을 계산함
+    int sum = 0;
+    for(int i=0;i<N;i++)
+    {
+        if(selected[i] == 1)
+           sum += cost[i];
+    }
+    return sum;
+}
+
+void solve(int idx)
+{
+    // 마을들의 부분집합을 구하여, 해당 부분집합이 최소의 비용을 갖는지를 확인
+    if(idx == N)
+    {        
+        if(!check()) return;
+        
+        int tmp = cal();
+        if(minn > tmp)
+            minn = tmp;
+        
+        return;
+    }
+    
+    selected[idx] = 0; solve(idx+1);
+    selected[idx] = 1; solve(idx+1);
+}
+
+void init()
+{
+    scanf("%d", &T);
+    for(int tc=1;tc<=T;tc++)
+    {
+        minn = MAX;
+        scanf("%d", &N);
+        
+        for(int i=0;i<N;i++)
+        {
+            scanf("%d", &cost[i]);
+            node[i].clear();
+        }
+        
+        for(int i=0;i<N;i++)
+            for(int j=0;j<N;j++)
+            {
+                scanf("%d", &mapp[i][j]);
+                if(mapp[i][j] == 1) // 직접적으로 연결된 마을은 벡터 형태로 따로 저장.
+                {
+                    node[i].push_back(j); 
+                    node[j].push_back(i);
+                }
+            }
+        
+        solve(0);
+        printf("#%d %d\n", tc,minn);
+    }
+}
+
+int main()
+{
+    init();
+    return 0;
+}

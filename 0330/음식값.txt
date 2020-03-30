@@ -1,0 +1,61 @@
+#include <cstdio>
+#include <iostream>
+#include <queue>
+#include <cstring>
+
+using namespace std;
+
+int T,N;
+int cost[100];
+int picked[100];
+priority_queue<pair<int,int>> pq; // cost, index
+
+int solve()
+{
+    int sum = 0;
+    
+    while(!pq.empty())
+    {
+        int c = pq.top().first;
+        int idx = pq.top().second;
+        pq.pop();
+        
+        int left = idx-1;
+        int right = idx+1;
+        
+        if(left == -1 ) left = N-1;
+        if(right == N ) right = 0;
+        
+        if(picked[left] == 1 || picked[right] == 1) continue;
+        
+        picked[idx] = 1;
+        sum += c;
+    }
+    
+    return sum;
+}
+       
+void init()
+{
+    scanf("%d", &T);
+    for(int tc=1;tc<=T;tc++)
+    {
+        memset(picked, 0 ,sizeof(picked));
+        scanf("%d", &N);
+        for(int i=0;i<N;i++)
+        {
+            scanf("%d", &cost[i]);
+            pq.push({cost[i],i});
+        }
+        
+        int result = solve();
+        
+        printf("#%d %d\n", tc,result);
+    }
+}
+
+int main()
+{
+    init();
+    return 0;
+}
