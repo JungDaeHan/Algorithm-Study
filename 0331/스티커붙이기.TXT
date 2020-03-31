@@ -1,0 +1,139 @@
+// 스티커의 인덱스를 맵의 인덱스와 같이 보고있는 바보같은 짓을 했다..
+// 스티커의 인덱스를 따로 봐줘야하는 생각을 바로 할 수 있도록 !!
+
+#include <cstdio>
+#include <iostream>
+#include <queue>
+#include <cstring>
+
+using namespace std;
+
+int N,M,K,R,C;
+int mapp[40][40];
+int sticky[100][10][10]; 
+int Ssize[100][3]; // R,C,1의개수
+int result;
+
+void rotate(int idx)
+{
+    int tmpst[10][10] = {0,};
+    int rowlen = Ssize[idx][0];
+    int collen = Ssize[idx][1];
+    int Rcol = rowlen;
+    int Rrow;
+    
+    for(int i=0;i<rowlen;i++)
+    {
+        Rcol--;
+        Rrow = 0;
+        for(int j=0;j<collen;j++)
+            tmpst[Rrow++][Rcol] = sticky[idx][i][j];
+    }
+    
+    swap(rowlen,collen);
+    
+    for(int i=0;i<rowlen;i++)
+        for(int j=0;j<collen;j++)
+            sticky[idx][i][j] = tmpst[i][j];
+    
+    swap(Ssize[idx][0], Ssize[idx][1]);
+    return;
+}
+
+bool check(int i,int j,int k)
+{
+    // mapp 에서 시작할 행렬 = i,j 
+    // 판단할 스티커 = k
+    
+    int strow=0,stcol=0;
+            
+    for(int row = i ; row<i+Ssize[k][0]; row++)
+    {
+        stcol = 0;
+        for(int col = j ;col <j+Ssize[k][1];col++)
+        {
+            if( (row >= N || col >= M ) && sticky[k][strow][stcol] == 1 ) return false;
+            
+            if( mapp[row][col] == 1 && sticky[k][strow][stcol] == 1  ) return false;
+            stcol++;
+        }
+        strow++;
+    }
+    
+    strow = 0;
+    for(int a=i; a<i+Ssize[k][0]; a++)
+    {
+        stcol = 0;
+        for(int b=j; b<j+Ssize[k][1]; b++)
+        {
+            if(mapp[a][b] == 0)
+               mapp[a][b] = sticky[k][strow][stcol];
+            stcol++;
+        }
+        strow++;
+    }
+    
+   return true;
+}
+
+void solve()
+{
+    int flag;
+    for(int k=0;k<K;k++) //k번째 스티커 판단
+    {
+        flag = 0; //스티커를 붙일 수 있다면 뒤를 더이상 볼 필요 x
+        for(int ro=0;ro<4;ro++)
+        {
+            for(int i=0;i<N;i++)
+            {
+                for(int j=0;j<M;j++)
+                {
+                  
+                    if(check(i,j,k))
+                    {
+                        result += Ssize[k][2];
+                        flag = 1;
+                        break;
+                    }
+                }
+              
+                if(flag == 1)
+                    break;
+            }
+            
+            if(flag == 1)
+               break;
+            rotate(k); 
+        }
+    }
+     
+    return;
+}
+       
+void init()
+{
+    scanf("%d %d %d", &N, &M, &K);
+    for(int i=0;i<K;i++)
+    {
+        int tmp = 0;
+        scanf("%d %d", &R, &C);
+        for(int a=0;a<R;a++)
+            for(int b=0;b<C;b++)
+            {
+                scanf("%d", &sticky[i][a][b]);
+                if(sticky[i][a][b] == 1)
+                    tmp++;
+            }
+        Ssize[i][0] = R; Ssize[i][1] = C; Ssize[i][2] = tmp;
+    }
+    
+    solve();
+    
+    printf("%d", result);
+}
+
+int main()
+{
+    init();
+    return 0;
+}
