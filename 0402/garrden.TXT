@@ -1,0 +1,147 @@
+//mapp 을 바꾸지 말기로 약속해놓고, 꽃이 생성되면 퍼지지 않게 하려고 mapp을 바꿔버림. 이런 실수를 고쳐야하고, 또 꽃이 되었을 때 퍼지지 않게 하기 위해 이를 처리해준다음, 큐에서 꺼낸 것마다 확인해줌
+
+#include <cstdio>
+#include <iostream>
+#include <queue>
+#include <cstring>
+#include <vector>
+
+using namespace std;
+
+int dx[4] = {0,0,1,-1};
+int dy[4] = {1,-1,0,0};
+
+int N,M,G,R;
+int mapp[50][50];
+pair<int,int> mapCal[50][50]; // (Gtime, Rtime)
+vector<pair<int,pair<int,int>>> v; // 배양할 수 있는 땅 : {배양한 색깔(1:G, 2:R) , {x,y} }
+queue<pair<int,pair<int,int>>> Q; // first : R or G
+int maxx,len;
+
+bool isChecked(int mx,int my,int c,int t)
+{
+    if(mx < 0 || mx >= N || my < 0 || my >= M || mapp[mx][my] == 0 ) return false;   
+    
+    if(c == 1)
+        if(mapCal[mx][my].first != 0 || (t+1 > mapCal[mx][my].second && mapCal[mx][my].second != 0) ) return false;
+    
+    if(c == 2)
+        if(mapCal[mx][my].second != 0 || (t+1 > mapCal[mx][my].first && mapCal[mx][my].first != 0) ) return false;
+    
+    
+    return true;
+}
+
+int cal()
+{
+    for(int i=0;i<len;i++)
+    {
+        if(v[i].first == 1 )
+        {
+            Q.push({1,{v[i].second.first,v[i].second.second}});
+            mapCal[v[i].second.first][v[i].second.second].first = 1;
+        }
+        else if(v[i].first == 2)
+        {
+            Q.push({2,{v[i].second.first,v[i].second.second}});
+            mapCal[v[i].second.first][v[i].second.second].second = 1;
+        }
+    }
+    
+    int x,y,c,t,mx,my,sum=0;
+    
+    while(Q.empty() != 1)
+    {
+        x = Q.front().second.first;
+        y = Q.front().second.second;
+        c = Q.front().first;
+        Q.pop();
+        
+        if(mapCal[x][y].first == -1) continue;
+        
+        if(c == 1)
+            t = mapCal[x][y].first;
+        else 
+            t = mapCal[x][y].second;
+        
+        
+        for(int i=0;i<4;i++)
+        {
+            mx = x + dx[i];
+            my = y + dy[i];
+            
+            if(!isChecked(mx,my,c,t)) continue;
+            
+            if(c==1)
+                mapCal[mx][my].first = t+1;
+            else
+                mapCal[mx][my].second = t+1;
+            
+            if( (mapCal[mx][my].first == mapCal[mx][my].second) ) 
+            {
+                sum++;
+                mapCal[mx][my].first = -1; // flower
+            }
+            else Q.push({c,{mx,my}});
+        }
+    }
+    
+    return sum;
+    
+}
+
+void permu(int idx,int Rcnt,int Gcnt)
+{
+    
+    if( Rcnt == R && Gcnt == G )
+    {
+        memset(mapCal,0,sizeof(mapCal));     
+        int tmp = cal();
+        
+        if(maxx < tmp)
+            maxx = tmp;
+        return;
+    }
+    
+    if( Rcnt > R || Gcnt > G )
+        return;
+    
+    for(int i=idx; i<len; i++)
+    {
+        if(v[i].first != 0 ) continue;
+        v[i].first = 1; // Green
+        permu(i+1,Rcnt,Gcnt+1);
+        
+        v[i].first = 2; // Red
+        permu(i+1,Rcnt+1,Gcnt);
+        
+        v[i].first = 0;
+    }
+}
+       
+void init()
+{
+    scanf("%d %d %d %d", &N, &M, &G, &R);
+    maxx = 0; len = 0;
+    
+    for(int i=0;i<N;i++)
+        for(int j=0;j<M;j++)
+        {
+            scanf("%d", &mapp[i][j]);
+            if(mapp[i][j] == 2) // 배양할 수 있는 땅
+            {
+                v.push_back({0,{i,j}});
+                len++;
+            }
+        }
+
+    permu(0,0,0);
+    
+    printf("%d", maxx);
+}
+
+int main()
+{
+    init();
+    return 0;
+}
