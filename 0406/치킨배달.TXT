@@ -1,0 +1,99 @@
+#include <cstdio>
+#include <iostream>
+#include <vector>
+
+#define abs(x,y) ((x)-(y)) > 0 ? ((x)-(y)) : ((y)-(x))
+#define MAX 999999999
+
+using namespace std;
+
+int map[50][50];
+int min_dis = MAX;
+int N,M;
+
+vector<int> c_point[2];
+vector<int> h_point[2];
+
+int calculate()
+{
+	int total_dist = 0;
+	int min_dist;
+	int tmp,a,b;
+
+	for(int k=0;k<h_point[0].size();k++)
+	{
+		min_dist = MAX;
+		for(int l=0;l<c_point[0].size();l++)
+		{
+			if(map[c_point[0][l]][c_point[1][l]] == 0)
+				continue;
+
+			a = abs(c_point[0][l],h_point[0][k]);
+			b = abs(c_point[1][l],h_point[1][k]);
+			//printf("%d %d \n", a,b);
+			tmp = a+b;
+			//printf("%d \n", tmp);
+
+			if(min_dist > tmp)
+				min_dist = tmp;
+			//printf("%d %d %d %d %d\n",c_point[0][l],c_point[1][l],h_point[0][k],h_point[1][k], min_dist);
+		}
+		total_dist += min_dist;
+	}
+
+
+	return total_dist;
+}
+
+void permu(int idx,int cnt,int limit)
+{
+	if(cnt == limit)
+	{
+		int tmp = calculate();
+		//printf("%d\n", tmp);
+		if(tmp < min_dis)
+			min_dis = tmp;
+
+		return;
+	}
+
+	for(int i=idx;i<c_point[0].size();i++)
+	{
+		if(map[c_point[0][i]][c_point[1][i]] == 0)
+			continue;
+		map[c_point[0][i]][c_point[1][i]] = 0;
+		permu(i,cnt+1,limit);
+		map[c_point[0][i]][c_point[1][i]] = 2;
+	}
+}
+
+int main()
+{
+	scanf("%d %d", &N, &M);
+
+	for(int i=0;i<N;i++)
+	{
+		for(int j=0;j<N;j++)
+		{
+			scanf("%d", &map[i][j]);
+
+			if(map[i][j] == 2)
+			{
+				c_point[0].push_back(i);
+				c_point[1].push_back(j);
+			}
+			else if(map[i][j] == 1)
+			{
+				h_point[0].push_back(i);
+				h_point[1].push_back(j);
+			}
+		}
+	}
+
+
+	permu(0,0,c_point[0].size()-M);
+
+	printf("%d", min_dis);
+
+	return 0;
+}
