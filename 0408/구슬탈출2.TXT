@@ -1,0 +1,149 @@
+//부분집합을 통해 완탐으로 해결하였으나, 그렇게 하지않고 4방향에 대한 BFS가 아닌 어디로 기울일 것이냐에 대한 BFS로 R과 B의 값을 굴려나간다면 더욱 쉽게 MIN 수를 찾을 수 있음. BFS이니까 중간에 MIN 이 나오므로 10까지 전부 봐줘가면서 비교할 필요가 없음
+
+
+#include <cstdio>
+#include <iostream>
+#include <queue>
+#include <cstring>
+#include <vector>
+
+using namespace std;
+
+int dx[5] = {0,0,0,1,-1};
+int dy[5] = {0,1,-1,0,0};
+
+int N,M;
+char mapp[11][11];
+int result=99;
+bool B_gone = false;
+pair<int,int> R,B;
+vector<int> v;
+
+bool check(int dir)
+{
+    //R과 B의 위치를 바꾸고 O에 들어가는지를 판단
+    if(dir == 0) return false;
+    
+    bool R_gone = false;
+    pair<int,int> tmpR,tmpB;
+    char Bval,Rval;
+    
+    while(1)
+    {
+        tmpR = make_pair(R.first + dx[dir], R.second + dy[dir]);
+        tmpB = make_pair(B.first + dx[dir], B.second + dy[dir]);
+        
+        Bval = mapp[tmpB.first][tmpB.second];
+        Rval = mapp[tmpR.first][tmpR.second];
+        
+        //파란공이 빠져버리면 더이상 그 집합에서는 기울이지 않아봐도 됨.
+        if(Bval == 'O')
+        {
+            B_gone = true;
+            return false;
+        }
+        
+        if(Rval == 'O')
+        {
+            R_gone = true;
+            mapp[R.first][R.second] = '.';
+            if(Bval == 'R')
+                Bval = '.';
+                
+        }
+        
+        if( (Bval == 'R' && Rval == '#') || (Rval == 'B' && Bval == '#') || (Rval == '#' && Bval == '#' ) 
+           || ( Rval == 'O' && ( Bval == '#'  || Bval == 'R' )) )
+        {
+            //R과 B의 이동이 끝난 상황  
+            if(R_gone)
+               return true;
+            return false;
+        }
+        
+        if(Rval == '.')
+        {
+            mapp[R.first][R.second] = '.';
+            mapp[tmpR.first][tmpR.second] = 'R';
+            R = tmpR;
+        }
+        
+        if(Bval == '.')
+        {
+            mapp[B.first][B.second] = '.';
+            mapp[tmpB.first][tmpB.second] = 'B';
+            B = tmpB;
+        }
+    }
+}
+
+void setBefore(pair<int,int> bef_R, pair<int,int> bef_B)
+{
+    mapp[R.first][R.second] = '.';
+    mapp[B.first][B.second] = '.';
+    mapp[bef_R.first][bef_R.second] = 'R';
+    mapp[bef_B.first][bef_B.second] = 'B';
+    R=bef_R; B=bef_B;
+}
+
+void powerset(int cnt,int dir)
+{
+    // B가 구멍에 빠지거나 10번을 기울임
+    if(cnt > 10)
+        return;
+    
+    // R만 구멍에 들어간 기울임이었는지 확인 후 min기울임 갯수 갱신
+    if(check(dir))
+    {
+        
+        if(result > cnt)
+            result = cnt;
+        return;
+    }
+    
+    if(B_gone)
+    {
+        B_gone=false;
+        return;
+    }
+    
+    //기울임 순서를 부분집합으로 정하기
+    for(int i=1;i<=4;i++)
+    {
+        if(dir != i)
+        {
+            pair<int,int> bef_R,bef_B;
+            bef_R = make_pair(R.first,R.second);
+            bef_B = make_pair(B.first,B.second);
+            powerset(cnt+1,i); // R과 B의 위치가 바뀌어있음. 돌아올 때 다시 그 R과 B여야함
+            setBefore(bef_R,bef_B);
+        }
+    }
+}
+       
+void init()
+{
+    scanf("%d %d", &N, &M);
+    for(int i=0;i<N;i++)
+        for(int j=0;j<M;j++)
+        {
+            scanf(" %c", &mapp[i][j]);
+            if(mapp[i][j] == 'R')
+                R = make_pair(i,j);
+            else if(mapp[i][j] == 'B')
+                B = make_pair(i,j);
+        }
+    
+    powerset(0,0);
+    
+    if(result != 99)
+        printf("%d", result);
+    else
+        printf("-1");
+}
+
+int main()
+{
+    init();
+    return 0;
+}
