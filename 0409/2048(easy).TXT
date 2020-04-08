@@ -1,0 +1,148 @@
+#include <cstdio>
+#include <iostream>
+#include <queue>
+#include <cstring>
+#include <vector>
+
+using namespace std;
+
+           //하,상,우,좌  -> 상,하,좌,우 로 방향이 정해질 때, 그의 반대방향으로 나아가면서 병합을 이어나감.
+int dx[4] = {1,-1,0,0};
+int dy[4] = {0,0,1,-1};
+pair<int,int> initPoint[4][21]; //상,하,좌,우 순으로 시작할 포인트들을 모아둠.
+
+int N;
+int mapp[21][21];
+vector<int> v; //합칠 방향을 순열로 구하기 위함 ( 중복순열 )
+int maxx = 0;
+
+int cal()
+{
+    //합칠 방향을 정한 v을 하나씩 진행(5개) 후 max 값 구하고 return
+    int max_val = maxx;
+    int len = v.size();
+    vector<pair<int,int>> merge_val; // 병합된 숫자 or 그냥 숫자들을 저장 , second : 병합된 적이 있는지를 확인
+    int tmpmapp[21][21];
+    
+    for(int i=0;i<N;i++)
+        for(int j=0;j<N;j++)
+            tmpmapp[i][j] = mapp[i][j];
+    
+    for(int i=0;i<len;i++)
+    {
+        pair<int,int> point[21];
+        
+        //병합 시작점들을 초기화해둠
+        for(int j=0;j<N;j++)
+            point[j] = initPoint[v[i]][j];
+        
+        //병합 시작
+        for(int j=0;j<N;j++)
+        {
+            merge_val.clear();
+            int x=point[j].first;
+            int y=point[j].second;
+            
+            for(;x>=0 && x<N && y>=0 && y<N ; x+=dx[v[i]],y+=dy[v[i]]) 
+            {
+                // 하나의 행 or 열에서 N 만큼 v[i] 의 방향대로 이동하면서 merge_val 에 병합해가며 push_back
+                if(tmpmapp[x][y] == 0) continue;
+                
+                if(merge_val.size() == 0)
+                {
+                    merge_val.push_back({tmpmapp[x][y],0});
+                    continue;
+                }
+                else
+                {
+                    if(merge_val.back().first == tmpmapp[x][y] && merge_val.back().second == 0)
+                    {
+                        merge_val.back().first <<= 1;
+                        merge_val.back().second = 1;
+                        if(max_val < merge_val.back().first)
+                            max_val = merge_val.back().first;
+                    }
+                    else
+                        merge_val.push_back({tmpmapp[x][y],0});
+                }
+            }
+            
+            x = point[j].first;
+            y = point[j].second;
+            
+            // 병합된 정보의 merge_val 벡터를 같은 행 or 열에 차례대로 꽂아넣고, 나머지 부분들은 0으로 초기화
+            for(int k=0;k<merge_val.size();k++)
+            {
+                tmpmapp[x][y] = merge_val[k].first;
+                x += dx[v[i]];
+                y += dy[v[i]];
+            }
+            
+            if(merge_val.size() != N )
+                for(int k=merge_val.size(); k<N; k++)
+                {
+                    tmpmapp[x][y] = 0;
+                    x += dx[v[i]];
+                    y += dy[v[i]];
+                }
+        }
+    }
+    
+    return max_val;
+}
+        
+void go(int cnt)
+{
+    if(cnt == 5)
+    {
+        int tmp = cal();
+        
+        if(maxx < tmp)
+            maxx = tmp;
+        return;
+    }
+    
+    for(int i=0;i<4;i++)
+    {
+        v.push_back(i);
+        go(cnt+1);
+        v.pop_back();
+    }
+}
+           
+void init()
+{
+    scanf("%d", &N);
+    
+    for(int i=0;i<4;i++)
+    {
+        for(int j=0;j<N;j++)
+        {
+            if(i==0)
+                initPoint[i][j] = make_pair(0,j);
+            else if(i==1)
+                initPoint[i][j] = make_pair(N-1,j);
+            else if(i==2)
+                initPoint[i][j] = make_pair(j,0);
+            else
+                initPoint[i][j] = make_pair(j,N-1);
+        }
+    }
+    
+    for(int i=0;i<N;i++)
+        for(int j=0;j<N;j++)
+        {
+            scanf("%d", &mapp[i][j]);
+            if(maxx < mapp[i][j])
+                maxx = mapp[i][j];
+        }
+    
+    go(0);
+    printf("%d", maxx);
+}
+
+int main()
+{
+    init();
+    return 0;
+}
