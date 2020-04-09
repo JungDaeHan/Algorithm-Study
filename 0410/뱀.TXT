@@ -1,0 +1,94 @@
+#include <cstdio>
+#include <vector>
+#include <deque>
+
+using namespace std;
+
+int N,K,L;
+int mapp[101][101]; // 0 -> 빈공간, 1 -> 뱀의 몸, 2 -> 사과
+
+           //우,하,좌,상 -> 오른쪽 시작, L 일시 -1, D 일시 +1 
+int dx[4] = {0,1,0,-1};
+int dy[4] = {1,0,-1,0};
+vector<pair<int,char>> info;
+int time=0;
+
+void go()
+{
+    //(0,0) 에서 한칸씩 이동하면서 사과를 확인. time 이 info의 first 와 같으면 second 방향에 따라 전환을 시작.
+    //꼬리와 머리의 포인트를 저장하고 
+    
+    deque<pair<int,int>> B; // front 부터 머리
+    B.push_back({0,0});
+    int dir = 0; //초기의 방향은 우방향
+    int idx = 0;
+    
+    while(1)
+    {
+        int x,y;
+        x = B.front().first + dx[dir];
+        y = B.front().second + dy[dir];
+            
+        if(x<0 || x>=N || y<0 || y>=N || mapp[x][y] == 1 ) return;
+            
+        if(mapp[x][y] == 2)
+        {
+            // 사과를 찾았으면 그냥 머리를 그 위치에 갖다 박음.
+            B.push_front({x,y});
+            mapp[x][y] = 1;
+        }   
+        else
+        {
+            // 그냥 빈공간이면 꼬리의 위치를 나아간 그곳에 위치시키고, 꼬리 부분은 0 박아줌.
+            mapp[B.back().first][B.back().second] = 0;
+            B.pop_back();
+            B.push_front({x,y});
+            mapp[x][y] = 1;
+        }
+        
+        time++;
+        if(time == info[idx].first)
+        {
+            if(info[idx].second == 'D')
+                dir = (dir+1)%4;
+            else
+            {
+                dir--;
+                if(dir <= -1)
+                    dir = 3;
+            }
+            idx++;
+        }
+    }
+}
+
+// 벽 또는 자기자신의 몸과 부딪히면 끝. 
+void solve()
+{
+    scanf("%d %d", &N,&K);
+    int x,y;
+    for(int i=0;i<K;i++)
+    {
+        scanf("%d %d", &x, &y);
+        mapp[x-1][y-1] = 2; // 사과 
+    }
+    
+    scanf("%d", &L);
+    int X;
+    char C;
+    for(int i=0;i<L;i++)
+    {
+        scanf("%d %c", &X, &C);
+        info.push_back({X,C});
+    }
+        
+    go();
+    printf("%d", time+1);
+    
+}
+
+int main()
+{
+    solve();
+    return 0;
+}

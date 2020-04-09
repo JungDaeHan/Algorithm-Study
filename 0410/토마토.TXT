@@ -1,0 +1,93 @@
+#include <cstdio>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+int dh[6] = {0,0,0,0,-1,1};
+int dx[6] = {0,0,1,-1,0,0};
+int dy[6] = {1,-1,0,0,0,0};
+
+int to[101][101][101]; // 1은 익은 토마토, 0은 익지 않은 토마토, -1은 빈공간
+int M,N,H;
+int left,time; // 익지않은 토마토 총 개수
+queue<pair<int,pair<int,int>>> Q;
+          //H        N   M
+
+void go()
+{
+    int h,x,y;
+    time = 0;
+    
+    while(1)
+    {
+        int len = Q.size();
+        
+        for(int i=0;i<len;i++)
+        {
+            h = Q.front().first;
+            x = Q.front().second.first;
+            y = Q.front().second.second;
+            Q.pop();
+            
+            int tx,ty,th;
+            for(int i=0;i<6;i++)
+            {
+                th = h + dh[i];
+                tx = x + dx[i];
+                ty = y + dy[i];
+                
+                if(th < 0 || th >= H || tx < 0 || tx >= N || ty < 0 || ty >= M 
+                   || to[th][tx][ty] == -1 || to[th][tx][ty] == 1 ) continue;
+                
+                to[th][tx][ty] = 1;
+                left--;
+                Q.push({th,{tx,ty}});
+            }
+        }
+        if(Q.size() == 0)
+            return;
+        time++;
+    }
+}
+
+void init()
+{
+    scanf("%d %d %d", &M, &N, &H);
+    // M 이 가로, N 이 세로
+    
+    for(int k=0;k<H;k++)
+    {
+        for(int i=0;i<N;i++)
+        {
+            for(int j=0;j<M;j++)
+            {
+                scanf("%d", &to[k][i][j]);
+                if(to[k][i][j] == 0 )
+                    left++;
+                else if(to[k][i][j] == 1)
+                    Q.push({k,{i,j}});
+            }
+        }
+    }
+    
+    if(left == 0)
+    {   
+        printf("0");
+        return;
+    }
+   
+    go();
+    
+    if(left <= 0)
+        printf("%d", time);
+    else
+        printf("-1");
+        
+}
+
+int main()
+{
+    init();
+    return 0;
+}
