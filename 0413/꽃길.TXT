@@ -1,0 +1,89 @@
+#include <cstdio>
+#include <vector>
+
+using namespace std;
+
+#define MAX 3001
+int dx[12] = {0,0,1,-1,1,1,-1,-1,2,-2,0,0};
+int dy[12] = {1,-1,0,0,-1,1,-1,1,0,0,2,-2};
+
+int N;
+int tmpmapp[11][11]; // init input map
+int mapp[11][11] = {0,}; // calculated map
+int selected[101] = {0,}; // row * 10 + col
+int minn = MAX;
+vector<pair<int,int>> v; // 조합으로 골라진 세개의 땅 위치
+
+bool check()
+{
+    // 꽃이 다른 꽃에 침범하면 바로 false
+    int x,y;
+    for(int i=0;i<2;i++)
+    {
+        x = v[i].first;
+        y = v[i].second;
+           
+        for(int d=0;d<12;d++)
+        {
+            if(selected[ (x+dx[d]) * 10 + y + dy[d] ] == 1)
+                return false;
+        }
+    }
+    return true;
+}
+
+void go(int idx,int cnt,int sum)
+{
+    // 조합으로 3개의 땅을 고름
+    if(cnt == 3)
+    {
+        if(check())
+        {
+            if(minn > sum)
+                minn = sum;
+        }
+        return;
+    }
+    
+    for(int i=idx;i <= (N-2)*10 + N-2 ; i++)
+    {
+        //2차원으로 조합하면 순열로 되니까 1차원으로 전환
+        int r = i/10;
+        int c = i%10;
+        
+        if(r <= 0 || c <= 0 || c >= N-1) continue;
+        if(selected[i] == 1) continue;
+        selected[i] = 1;
+        v.push_back({r,c});
+        go(i+1,cnt+1,sum+mapp[r][c]);
+        v.pop_back();
+        selected[i] = 0;
+    }
+            
+}
+           
+void init()
+{
+    scanf("%d", &N);
+    for(int i=0;i<N;i++)
+        for(int j=0;j<N;j++)
+            scanf("%d", &tmpmapp[i][j]);
+    
+    //미리 땅값을 계산해둠
+    for(int i=1;i<N-1;i++)
+        for(int j=1;j<N-1;j++)
+        {
+            mapp[i][j] = tmpmapp[i][j];
+            for(int d=0;d<4;d++)
+                mapp[i][j] += (tmpmapp [i+dx[d]][j+dy[d]]);
+        }  
+    
+    go(11,0,0);
+    printf("%d", minn);
+}
+
+int main()
+{
+    init();
+    return 0;
+}
