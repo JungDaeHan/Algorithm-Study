@@ -1,0 +1,73 @@
+#include <cstdio>
+#include <iostream>
+
+using namespace std;
+
+int dx[5] = {0,-1,1,0,0};
+int dy[5] = {0,0,0,-1,1};
+
+int mapp[1001][1001] = {0,};
+int R,C,k;
+int dir[4];
+int sx,sy; // 시작점
+
+void go()
+{
+    pair<int,int> P;
+    P.first = sx;
+    P.second = sy;
+    mapp[sx][sy] = 1;
+    int idx = 0;
+    int count = 0;
+    
+    while(1)
+    {
+        if(count == 4)
+        {
+            printf("%d %d", P.first, P.second);
+            return;
+        }
+        
+        int nx = P.first + dx[ dir[idx] ];
+        int ny = P.second + dy[ dir[idx] ];
+        
+        if( (nx < 0 || nx >= R || ny < 0 || ny >= C) || mapp[nx][ny] != 0)
+        {
+            count++;
+            idx++; 
+            if(idx == 4) idx = 0;
+            continue;
+        }
+        
+        mapp[nx][ny] = 1;
+        P.first = nx;
+        P.second = ny;
+        count = 0;
+    }
+}              
+
+void solve()
+{
+    scanf("%d %d", &R,&C);
+    scanf("%d ", &k);
+    int x,y;
+    for(int i=0;i<k;i++)
+    {
+        scanf("%d %d", &x,&y);
+        mapp[x][y] = -1;
+    }
+    
+    scanf("%d %d", &sx,&sy);
+    
+    for(int i=0;i<4;i++)
+        scanf("%d", &dir[i]);
+    
+    go();
+    
+}
+
+int main()
+{
+    solve();
+    return 0;
+}

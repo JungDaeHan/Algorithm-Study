@@ -1,0 +1,65 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <cstring>
+
+using namespace std;
+
+string s[6];
+int selected[6];
+
+bool check(int a,int b,int c)
+{    
+    for(int k=0;k<3;k++)
+    {
+        for(int i=0;i<6;i++)
+        {
+            if(selected[i] == 1) continue;
+            
+            if(s[i][0] == s[a][k] && s[i][1] == s[b][k] && s[i][2] == s[c][k] )
+            {
+                selected[i] = 1;
+                break;
+            }
+        }
+    }
+    
+    for(int i=0;i<6;i++)
+        if(selected[i] == 0 )
+            return false;
+    return true;
+    
+}
+   
+void init()
+{
+    for(int i=0;i<6;i++)
+        cin >> s[i];
+    
+    for(int k=0;k<6;k++)
+    {
+        for(int i=0;i<6;i++)
+        {
+            if(k==i) continue;
+            for(int j=0;j<6;j++)
+            {
+                if(j==i || j==k) continue;
+                selected[k] = 1; selected[i] = 1; selected[j] = 1;
+                if(check(k,i,j))
+                {
+                    cout << s[k] << '\n' << s[i] << '\n' << s[j];
+                    return ;
+                }
+                memset(selected,0,sizeof(selected));
+            }
+        }
+    }
+    
+    printf("0");
+}
+
+int main()
+{
+    init();
+    return 0;
+}
