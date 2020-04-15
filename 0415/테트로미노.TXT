@@ -1,0 +1,67 @@
+#include <cstdio>
+#include <vector>
+
+using namespace std;
+
+int mapp[501][501];
+int N,M;
+int maxx = 0;
+
+int dx[19][4] = { {0,0,0,0}, {0,1,2,3}, {0,1,0,1}, {0,1,2,2}, {0,1,2,2}, {0,0,0,1}, {0,0,0,-1}, 
+                 {0,0,1,2}, {0,0,1,2}, {0,0,0,-1}, {0,0,0,1}, {0,0,0,1}, {0,0,0,-1}, {0,0,-1,1},
+                 {0,-1,1,0}, {0,1,1,2}, {0,0,-1,-1}, {0,1,1,2}, {0,0,1,1} };
+
+int dy[19][4] = { {0,1,2,3}, {0,0,0,0}, {0,0,1,1}, {0,0,0,1}, {0,0,0,-1}, {0,1,2,0},
+                 {0,1,2,0}, {0,1,1,1}, {0,1,0,0}, {0,1,2,2}, {0,1,2,2}, {0,1,2,1}, {0,1,2,1}, {0,1,1,1},
+                 {0,0,0,1}, {0,0,1,1}, {0,1,1,2}, {0,0,-1,-1}, {0,1,1,2} };
+          
+int check(int x,int y,int d)
+{
+    int sum = 0;
+    for(int dir=0;dir<4;dir++)
+    {
+        int nx = x + dx[d][dir];
+        int ny = y + dy[d][dir];
+        
+        if(nx < 0 || nx >= N || ny < 0 || ny >= M ) return 0;
+        
+        sum += mapp[nx][ny];
+    }
+    return sum;
+}
+
+void go()
+{
+    for(int i=0;i<N;i++)
+    {
+        for(int j=0;j<M;j++)
+        {
+            for(int d=0;d<19;d++)
+            {
+                int tmp = check(i,j,d);
+                
+                if(maxx < tmp )
+                    maxx = tmp;
+            }
+        }
+    }
+}
+
+void init()
+{
+    scanf("%d %d", &N, &M);
+    
+    for(int i=0;i<N;i++)
+        for(int j=0;j<M;j++)
+            scanf("%d", &mapp[i][j]);
+    
+    go();
+    
+    printf("%d", maxx);
+}
+
+int main()
+{
+    init();
+    return 0;
+}

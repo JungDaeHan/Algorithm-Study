@@ -1,0 +1,102 @@
+#include <cstdio>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+int dx[5] = {0,0,0,-1,1};
+int dy[5] = {0,1,-1,0,0};
+
+int mapp[21][21]; // 1은 익은 토마토, 0은 익지 않은 토마토, -1은 빈공간
+int M,N,x,y,k;
+int order[1001];
+int dice[4][3];
+// 위 (1,1) 북 (0,1) 동 (1,2) 서 (1,0) 남 (2,1) 아래 (3,1)
+void rotate(int dir)
+{
+    int tmp;
+    if(dir == 1)
+    {
+        //우 -> 동이 아래로, 아래는 서로, 서는 위로, 위는 동으로.
+        tmp = dice[1][2];
+        dice[1][2] = dice[1][1];
+        dice[1][1] = dice[1][0];
+        dice[1][0] = dice[3][1];
+        dice[3][1] = tmp;
+    }
+    else if(dir == 2)
+    {
+        tmp = dice[1][0];
+        dice[1][0] = dice[1][1];
+        dice[1][1] = dice[1][2];
+        dice[1][2] = dice[3][1];
+        dice[3][1] = tmp;
+    }
+    else if(dir == 3)
+    {
+        tmp = dice[0][1];
+        dice[0][1] = dice[1][1];
+        dice[1][1] = dice[2][1];
+        dice[2][1] = dice[3][1];
+        dice[3][1] = tmp;
+    }
+    else if(dir == 4)
+    {
+        tmp = dice[0][1];
+        dice[0][1] = dice[3][1];
+        dice[3][1] = dice[2][1];
+        dice[2][1] = dice[1][1];
+        dice[1][1] = tmp;
+    }
+}
+
+void go()
+{
+    int nx,ny;
+    for(int i=0;i<k;i++)
+    {
+        nx = x + dx[ order[i] ];
+        ny = y + dy[ order[i] ];
+        
+        if(nx < 0 || nx >= N || ny < 0 || ny >= M )
+            continue;
+        
+        rotate( order[i] );
+        
+        if(mapp[nx][ny] == 0)
+            mapp[nx][ny] = dice[3][1];
+        else
+        {
+            dice[3][1] = mapp[nx][ny];
+            mapp[nx][ny] = 0;
+        }
+        
+        printf("%d\n", dice[1][1]);
+        
+        x = nx;
+        y = ny;
+    }
+}
+        
+void init()
+{
+    scanf("%d %d %d %d %d", &N, &M, &x, &y, &k);
+    // M 이 가로, N 이 세로
+    
+    for(int i=0;i<N;i++)
+        for(int j=0;j<M;j++)
+            scanf("%d", &mapp[i][j]);
+     
+    for(int i=0;i<k;i++)
+        scanf("%d", &order[i]);
+    
+    go();
+    
+    
+}
+
+int main()
+{
+    init();
+    return 0;
+}
