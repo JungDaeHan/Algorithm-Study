@@ -1,0 +1,36 @@
+#include <cstdio>
+#include <algorithm>
+
+using namespace std;
+
+int N;
+int arr[1500010][2];
+int dp[1500010];
+
+void init()
+{
+    scanf("%d", &N);
+    for(int i=1;i<=N;i++)
+        scanf("%d %d", &arr[i][0], &arr[i][1]);
+ 
+    // 상담을 마친 그 다음 날에 돈을 받는다고 생각. 
+    // 해당 날에 받을 수 있는 가장 큰 돈이 dp[i]
+    
+    int maxx = 0;
+    for(int i=1 ; i<=N+1; i++)
+    {
+        maxx = max(maxx,dp[i]);
+        if( i + arr[i][0] > N + 1)continue;
+        
+        dp[ i + arr[i][0] ] =max(maxx + arr[i][1], dp[ i + arr[i][0] ] );
+    }
+    printf("%d", maxx);
+    
+    
+}
+
+int main()
+{
+    init();
+    return 0;
+}
